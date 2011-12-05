@@ -1,0 +1,52 @@
+Mailhandler 6.x-2.x, 2011-12-04
+-------------------------------
+
+Mailhandler 6.x-2.0, 2011-12-04
+-------------------------------
+#1358722 by Dane Powell: Ran usability review.
+#1359842 by Dane Powell: Ran coder review and branch tests.
+#1191746 by Dane Powell: Added option to not delete/mark as read messages that fail authentication.
+#1334472 by dafeder: Added hook and trigger for failed authentication.
+#1024258 by Dane Powell: Added test cases.
+#1347842 by Dane Powell: Changed vague instructions regarding paths in INSTALL.txt.
+#275926 by Dane Powell: Added message retrieval library plugins (in order to avoid PHP IMAP dependency).
+Removed unused function.
+#1356536 by Dane Powell: Changed names of filter, authentication, and commands plugins.
+#1338882 by Dane Powell: Added notice on enable that error about missing schema is normal.
+Removed mailhandler_alphanumeric function, use ctools_cleanstring instead.
+More code cleanup.
+Removed unused function.
+#1312694 by kloewer: Fixed cleaning of ISO-8859-1 encoding in subjects (again).
+Minor code refactor.
+Minor code style cleanup.
+
+Mailhandler 6.x-2.0-rc1, 2011-10-19
+-----------------------------------
+Fixed warning on import introduced by #1281530.
+Coder (code formatting) cleanup before next release.
+#1314788 by Dane Powell: Added ability of commands plugins to store config options.
+#1281530 by muka: Added preserving id of message parts during retrieval.
+#1029134 by laurent.lemercier: Added cleaning of ISO-8859-1 encoding in messages.
+#1307470 by andremolnar: Removed unused MIME parts mapping source.
+#1283198 by Dane Powell: Fixed broken mailbox exports.
+#1260106 by jeffvanh, Dane Powell: Added option to ignore failed authentication.
+#1191722 by Dane Powell: Added cc and bcc addresses as mapping sources.
+#1265818 by narayanis, Dane Powell: Added weights to parser plugins.
+
+Mailhandler 6.x-2.0-beta2, 2011-08-29
+-------------------------------------
+Removed mailto (second email address) option, as it was not actually used anywhere.
+#1258788 by Dane Powell: Fixed errors related to empty POP mailboxes (again).
+Fixed loading of filters_plugin.
+Changed watchdog severity level for an empty mailbox from error to info
+#1258788 by Dane Powell: Fixed errors related to empty POP mailboxes.
+#1159580 by Dane Powell: Improved mailbox connection test to be more informative.
+#1208028 by Dane Powell: Fixed failed authentications not being reported
+#494002 by Dane Powell: Fixed signature separator filter to be more conservative
+
+Mailhandler 6.x-2.0-beta1, 2011-05-18
+-------------------------------------
+#1146426 by Dane Powell: Removed validation of mailbox names as email addresses
+#1150362 by Dane Powell: Fixed taxonomy handling
+#1158384 by Dane Powell: Cleaned up code (Coder review and documentation)
+Added CHANGELOG.txt

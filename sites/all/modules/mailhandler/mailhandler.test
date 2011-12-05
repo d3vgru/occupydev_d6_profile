@@ -1,0 +1,38 @@
+<?php
+/**
+ * @file
+ * Tests for Mailhandler modules.
+ */
+
+class MailhandlerImportTestCase extends DrupalWebTestCase {
+  protected $privileged_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Mailbox creation and import',
+      'description' => 'Create mailboxes and feeds importers and make sure they work.',
+      'group' => 'Mailhandler',
+    );
+  }
+
+  public function setUp() {
+    // Enable any modules required for the test
+    parent::setUp('ctools', 'feeds', 'job_scheduler', 'feeds_ui', 'autoload', 'mailhandler', 'mailhandler_default');
+    // Create and log in our privileged user.
+    $this->privileged_user = $this->drupalCreateUser(array('administer mailhandler', 'administer feeds'));
+    $this->drupalLogin($this->privileged_user);
+  }
+
+  public function testMailhandlerImport() {
+    $edit = array();
+    $edit['admin_title'] = 'test@example.com';
+    $edit['mail'] = 'test_example_com';
+    $edit['settings[retrieve]'] = 'MailhandlerRetrieveDummy';
+    $this->drupalPost('admin/build/mailhandler/add', $edit, t('Save'));
+    $this->assertText(t('@title has been created.', array('@title' => 'test_example_com')));
+    $edit = array();
+    $this->drupalPost('import/mailhandler_nodes', $edit, t('Import'));
+    $this->assertText(t('There is no new content.'));
+  }
+
+}

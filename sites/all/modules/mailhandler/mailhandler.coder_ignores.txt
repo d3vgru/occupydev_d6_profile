@@ -1,0 +1,14 @@
+; Mailhandler ignores
+
+; update_sql cannot be used because it breaks serialized data
+mailhandler.install:256:sql
+; http://drupal.org/node/898200
+mailhandler.module:29:coder_tough_love
+; http://drupal.org/node/898200
+mailhandler.module:32:coder_tough_love
+; http://drupal.org/node/898200
+plugins/ctools/export_ui/mailhandler_mailbox_ui.class.php:70:coder_tough_love
+; false positive
+modules/mailhandler_php_imap/plugins/mailhandler/retrieve/MailhandlerPhpImapRetrieve.class.php:291:coder_tough_love
+; false positive
+mailhandler.install:237:coder_tough_love

@@ -1,11 +1,22 @@
-; $Id $
 name = Mailhandler
 description = Accepts submissions via e-mail.
 core = 6.x
+dependencies[] = "ctools"
+dependencies[] = "feeds"
+dependencies[] = "autoload"
+package = "Mailhandler"
 
-; Information added by drupal.org packaging script on 2010-06-13
-version = "6.x-1.11"
+files[] = mailhandler.install
+files[] = mailhandler.module
+files[] = mailhandler.test
+files[] = plugins/mailhandler/filters/MailhandlerFilters.class.php
+files[] = plugins/mailhandler/authenticate/MailhandlerAuthenticate.class.php
+files[] = plugins/mailhandler/commands/MailhandlerCommands.class.php
+files[] = plugins/mailhandler/retrieve/MailhandlerRetrieve.class.php
+
+; Information added by drupal.org packaging script on 2011-12-04
+version = "6.x-2.0"
 core = "6.x"
 project = "mailhandler"
-datestamp = "1276452306"
+datestamp = "1323034844"
 
