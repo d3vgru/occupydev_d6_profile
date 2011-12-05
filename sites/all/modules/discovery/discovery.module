@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * Implementation of hook_menu().
+ */
+function discovery_menu() {
+  $items = array();
+
+  $items['.well-known/host-meta'] = array(
+    'page callback' => 'discovery_host_meta',
+    'access callback' => TRUE,
+  );
+
+  $items['discovery/xrd'] = array(
+    'page callback' => 'discovery_xrd_page',
+    'access callback' => TRUE,
+  );
+  
+  return $items;
+}
+
+function discovery_host_meta() {
+  _discovery_init();
+  require_once 'Discovery/XRD.php';
+
+  $xrd = new Discovery_XRD();
+  $xrd->host = $_SERVER['HTTP_HOST'];
+
+  $xrd->links[] = array(
+    'rel' => 'lrdd',
+    'template' => url('discovery/xrd', array('query' => 'uri={uri}',
+                                             'absolute' => TRUE)),
+    'title' => array('Resource Descriptor')
+  );
+
+  drupal_set_header('Content-type: application/xrd+xml');
+  print $xrd->toXML();
+}
+
+function discovery_xrd_page() {
+  _discovery_init();
+  require_once 'Discovery.php';
+  require_once 'Discovery/LRDD.php';
+  
+  $uri = Discovery_LRDD::normalize(check_plain($_GET['uri']));
+  if (empty($uri)) {
+    return drupal_not_found();
+  }
+
+  if (Discovery_LRDD::isWebfinger($uri)) {
+    list($name, $host) = explode('@', $uri);
+    $account = user_load(array('name' => substr($name, 5)));
+  }
+  else {
+    if (preg_match('/user\/(\d+)$/', $uri, $matches)) {
+      $account = user_load($matches[1]);
+    } else {
+      return drupal_not_found();
+    }
+  }
+
+  if (empty($account->uid)) {
+    return drupal_not_found();
+  }
+  
+  $xrd = new Discovery_XRD();
+  $xrd->subject = $uri;
+  $xrd->alias[] = url('user/'.$account->uid, array('absolute' => TRUE));
+
+  $xrd->links[] = array(
+    'rel' => 'http://webfinger.net/rel/profile-page',
+    'type' => 'text/html',
+    'href' => url('user/'. $account->uid, array('absolute' => TRUE)),
+  );
+
+  drupal_alter('discovery_xrd', $xrd, $account);
+  
+  drupal_set_header('Content-type: application/xrd+xml');
+  print $xrd->toXML();
+}
+
+function discovery_discover($uri, $rel) {
+  _discovery_init();
+  require_once 'Discovery.php';
+
+  $http = new Discovery_Drupal;
+  $disco = Discovery::factory('LRDD', $http);
+
+  try {
+    $result = $disco->discover($uri);
+  }
+  catch (Exception $e) {
+    watchdog('discovery', t('Unable to discover @uri'), array('@uri' => $uri), WATCHDOG_ERROR);
+    return false;
+  }
+
+  foreach ($result->links  as $link) {
+    if ($link['rel'] == $rel) {
+      return $link;
+    }
+  }
+
+  return false;
+}
+
+function _discovery_init() {
+  set_include_path(get_include_path() .':'. dirname(__FILE__) .'/lib');
+  module_load_include('inc', 'discovery', 'discovery_http');
+}
