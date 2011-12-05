@@ -1,0 +1,14 @@
+; $Id $
+name = Linked Data
+description = "Utility module to help query and render Linked Open Data"
+package = "RDF"
+core = 6.x
+dependencies[] = ctools
+dependencies[] = sparql
+
+; Information added by drupal.org packaging script on 2010-09-18
+version = "6.x-1.0-beta2"
+core = "6.x"
+project = "linked_data"
+datestamp = "1284809161"
+

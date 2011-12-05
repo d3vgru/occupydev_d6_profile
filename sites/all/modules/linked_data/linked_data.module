@@ -1,0 +1,268 @@
+<?php
+/**
+ * @file
+ * TODO: Provide some autocomplete on endpoints? 
+ * TODO: Provide inline query preview w/ arguments like Views. 
+ */
+
+/**
+ * Implemnentation of hook_perm
+ */
+function linked_data_perm() {
+  return array('administer linked data queries');
+}
+
+/**
+ * Implementation of hook_theme();
+ */
+function linked_data_theme() {
+  $general = array(
+    'linked_data_query_form' => array(
+      'arguments' => array('form' => array()),
+      'path' => drupal_get_path('module', 'linked_data') .'/theme',
+      'file' => 'theme.inc',
+    ),
+  );
+  
+  $queries = array(
+    'linked_data' => array(
+      'arguments' => array('query' => NULL, 'data' => array()),
+      'path' => drupal_get_path('module', 'linked_data') .'/theme',
+      'template' => 'linked-data',
+      'file' => 'theme.inc',
+    ),
+    'linked_data_row' => array(
+      'arguments' => array('query' => NULL, 'row' => array()),
+      'path' => drupal_get_path('module', 'linked_data') .'/theme',
+      'template' => 'linked-data-row',
+      'file' => 'theme.inc',
+    ),
+    'linked_data_field' => array(
+      'arguments' => array('query' => NULL, 'name' => NULL, 'field' => array()),
+      'path' => drupal_get_path('module', 'linked_data') .'/theme',
+      'template' => 'linked-data-field',
+      'file' => 'theme.inc',
+    ),
+  );  
+  
+  return array_merge($general, $queries);
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory().
+ *
+ * Defines where to look for ctools plugin implementations
+ */
+function linked_data_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && $plugin == 'export_ui') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Load a linked data query
+ */
+function linked_data_query_load($query_name) {
+  ctools_include('export');
+  $queries = ctools_export_load_object('linked_data_query', 'names', array($query_name));
+  return $queries[$query_name];
+}
+
+/**
+ * Execute a linked data query and render the results.
+ */
+function linked_data_render($query_name, $args = array()) {
+  $cache_key = _linked_data_cache_prefix($query_name, $args) . ':output';
+  $cache = cache_get($cache_key);
+
+  if ($cache) {
+    return $cache->data;
+  }     
+  else {
+    $query = linked_data_query_load($query_name);
+    if ($query) {
+      $data = linked_data_execute($query, $args);
+      $output = theme('linked_data', $query, $data);
+      if ($query->config['cache_lifetime'] > 0) {
+        cache_set($cache_key, $output, 'cache', time() + $query->config['cache_lifetime']);
+      }
+      return $output;
+    }
+  }
+  
+  return '';
+}
+ 
+/**
+ * Execute a linked data query
+ */
+function linked_data_execute($query, $args = array()) {
+  $query->arguments = $args;
+  $cache_key = _linked_data_cache_prefix($query->name, $args) . ':data';
+  $cache = cache_get($cache_key);
+
+  if ($cache) {
+    return $cache->data;
+  }     
+
+  $engine = linked_data_get_engine($query->config['query_type']);
+  $data = $engine->execute($query, $args);
+
+  if ($query->config['cache_lifetime'] > 0) {
+    cache_set($cache_key, $data, 'cache', time() + $query->config['cache_lifetime']);
+  }
+  return $data;
+}
+
+/**
+ * Create the proper query class based on the type
+ */
+function linked_data_get_engine($type) {
+  static $engines = array();
+  if (isset($engines[$type])) {
+    return $engines[$type];
+  }
+
+  module_load_include('inc', 'linked_data', 'linked_data.' . $type);
+  $clazz = "linked_data_{$type}_query";
+  $engines[$type] = new $clazz;
+  return $engines[$type];
+}
+
+/**
+ * Renders the query form.
+ */
+function linked_data_query_form(&$form, &$form_state) {
+  drupal_add_js(drupal_get_path('module', 'linked_data') . '/linked_data.js'); 
+
+  $item = $form_state['item'];
+
+  $form['#theme'] = 'linked_data_query_form';
+
+  $form['info']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The human readable name for this preset'),
+    '#default_value' => $item->title,
+  );
+  $form['info']['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+    '#description' => t('The description for this preset.'),
+    '#default_value' => $item->description,
+  );
+  $form['info']['config']['query_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Query Type'),
+    '#description' => t('Type of Linked Data Query you are writing.  SPARQL is for general endpoint queries.  MQL is specifically for Freebase queries.'),
+    '#options' => drupal_map_assoc(array('sparql', 'mql')),
+    '#default_value' => $item->config['query_type'] ? $item->config['query_type'] : 'sparql',
+  );
+  $form['info']['config']['endpoint'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Endpoint'),
+    '#description' => t('The SPARQL endpoint to use for this query'),
+    '#default_value' => $item->config['endpoint'] ? $item->config['endpoint'] : 'http://dbpedia.org/sparql',
+  );
+  $form['info']['config']['query'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Query'),
+    '#description' => t('The query to use execute.  Should be SPARQL or MQL depending on the Query Type Specification. For MQL consider using the !qb', array('!qb' => l(t('Query Builder'), 'http://www.freebase.com/app/queryeditor/'))),
+    '#default_value' => $item->config['query'],
+  );
+  
+  $period = drupal_map_assoc(array(0, 3600, 10800, 21600, 43200, 86400, 172800, 604800, 1209600, 2419200), 'format_interval');
+  $period[0] = '<' . t('none') . '>';
+  $form['info']['config']['cache_lifetime'] = array(
+    '#type' => 'select',
+    '#title' => t('Cache Lifetime'),
+    '#description' => t('The cache lifetime is the minimum amount of time that will elapse before the cache is emptied and the data is refreshed from the remote site(s). A larger minimum cache lifetime offers better performance, but users will not see updates to the linked data for a longer period of time.'),
+    '#options' => $period,
+    '#default_value' => isset($item->config['cache_lifetime']) ? $item->config['cache_lifetime'] : 86400,
+  );
+  $form['info']['config']['#tree'] = TRUE;
+  
+  return $form;
+}
+
+/**
+ * Validate the query form submission.
+ */
+function linked_data_query_form_validate(&$form, &$form_state) {
+  // TODO: Validate that the query parses based on type?
+  $engine = linked_data_get_engine($form_state['values']['config']['query_type']);
+  $engine->validate($form, $form_state);
+}
+
+/**
+ * Handle the form submission for ctool export_ui.
+ */
+function linked_data_query_form_submit(&$form, &$form_state) {
+  $form_state['item']->name = $form_state['values']['name'];
+  $form_state['item']->title = $form_state['values']['title'];
+  $form_state['item']->description = $form_state['values']['description'];
+  $form_state['item']->config = $form_state['values']['config'];
+  
+  cache_clear_all('linked_data:' . $form_state['item']->name , 'cache', TRUE);
+}
+
+/**
+ * Generate a consistent cache prefix.
+ */
+function _linked_data_cache_prefix($query_name, $args) {
+  return 'linked_data:' . $query_name . ':' . md5(serialize($args));
+}
+
+/**
+ * Utility function to extract the GUID value off of a Freebase URL. This will happen automatically
+ * if you name your variable $guid and specify the full URL as the arg value.  However, if for some reason
+ * you can't name your variable guid, you can use this function to convert.
+ *
+ * Example: http://rdf.freebase.com/ns/guid.9202a8c04000641f800000000014938b to #9202a8c04000641f800000000014938b
+ */
+function linked_data_fburl2guid($url) {
+  module_load_include('inc', 'linked_data', 'linked_data.mql');
+  $engine = new linked_data_mql_query();
+  return $engine->fburl2guid($url);
+}
+
+/**
+ * Define the base class for a query engine.
+ */
+class linked_data_query {
+  /**
+   * Validate the query parses.
+   */
+  function validate(&$form, &$form_state) {
+    return TRUE;
+  }
+  
+  /**
+   * Execute a query and return an array with a row for each result.
+   */
+  function execute($query, $args) {
+    return array();
+  }
+  
+  /**
+   * Replace parameters in the query with the arguments.
+   *
+   * @param $query
+   *    The query for linked data as a string
+   * @param $args
+   *    An associative array. The keys will be replaced in the $query with the value.
+   * @return
+   *    The filtered query with values replaced.
+   */
+  function filter_arguments(&$query, $args) {
+    foreach ($args as $key => $value) {
+      $query = preg_replace('/\$' . $key . '/', $value, $query);
+    }
+  }
+}
+
+
+
+
+
+

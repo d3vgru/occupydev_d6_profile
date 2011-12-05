@@ -1,0 +1,13 @@
+; $Id $
+name = Linked Data Example
+description = "Module with example of how to use the Linked Data module"
+package = "RDF"
+core = 6.x
+dependencies[] = linked_data
+
+; Information added by drupal.org packaging script on 2010-09-18
+version = "6.x-1.0-beta2"
+core = "6.x"
+project = "linked_data"
+datestamp = "1284809161"
+

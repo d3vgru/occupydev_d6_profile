@@ -1,0 +1,69 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * hook_install implementation
+ *
+ * Create the vocabularies for all know Calais Entities.
+ */
+function linked_data_install() {
+  drupal_install_schema('linked_data');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function linked_data_uninstall() {
+  drupal_uninstall_schema('linked_data');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function linked_data_schema() {
+
+  $schema['linked_data_query'] = array(
+    'description' => t('Stores the configured Linked Data queries.'),
+    'export' => array(
+      'key' => 'name',
+      'identifier' => 'query',                  // Exports will be as $query
+      'default hook' => 'default_linked_data',  // Function hook name.
+      'api' => array(
+        'owner' => 'linked_data',
+        'api' => 'linked_data',  // Base name for api include files.
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'name' => array(
+        'description' => t("The query's machien readable string identifier."),
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => t('The human-readable name for this preset.'),
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => t('The description for this preset.'),
+        'type' => 'text',
+      ),
+      'config' => array(
+        'description' => t('A serialized array that represents this queries definition.'),
+        'type' => 'text',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+	  
+  return $schema;
+}
+
+

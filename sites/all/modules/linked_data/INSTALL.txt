@@ -1,0 +1,11 @@
+1. Install RDF module from: http://drupal.org/project/rdf
+  - Download ARC2 from: http://arc.semsol.org/download
+    ...and unzip it to sites/all/modules/rdf/vendor/arc/ under the Drupal directory.
+
+2. Install SPARQL module from: http://drupal.org/project/sparql
+
+3. Go to [Administer >> Reports >> Status report] to make sure you've
+   successfully installed the ARC2 library
+
+4. To see some examples, you should enable Linked Data Example module and 
+   go to http://yourdomain.com/admin/build/linked-data/examples
