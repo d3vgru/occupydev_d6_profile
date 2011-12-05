@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Translate Conversation</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+    var jid = JQ(document).getUrlParam('jid');
+
+    /**
+     * Set message information and then activate timeout to clear it
+     * @param {String} msg The message to set
+     * @action sets the message and calls the timeout to clear it
+     */
+    function xcSetMsg(msg, error) {
+      if (JQ('div#msg').children().size() > pWin.XC.LOGSIZE) {
+        JQ('div#msg').children(':first-child').remove();
+      }
+      if (error) {
+        JQ('#msg').addClass('xcError').append('<div>' + msg + '</div>').show();
+      } else {
+        JQ('#msg').removeClass('xcError').append('<div>' + msg + '</div>').show();
+      };
+    };
+
+    /**
+     * Set the language in the client that we are translating into for the conversation
+     *
+     * @param {String} language
+     *  The language we are going to translate into
+     */
+    function xcUpdateLanguage(language) {
+      pWin.xcUpdateWindowLanguage(jid, language);
+      xcSetMsg('Language has been updated');
+      setTimeout(function() { window.close(); }, 2000);
+    };
+
+    JQ(document).ready(function() {
+      JQ('div#msg').click(function() {
+        JQ(this).removeClass('xcError').html('').hide();
+      });
+    });
+    JQ(window).unload(function(){ try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {} });
+  </script>
+ </head>
+ <body id="xcTranslate">
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Translate Conversation'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="update_language_form" name="update_language_form">
+           <script type="text/javascript">
+              var str = '<div class="xcFieldWrapper select">' +
+                        '<label for="language" id="language_lbl" class="xcLabel" title="' + pWin.xcT('Translate from') + '">' + pWin.xcT('Translate from: ') + ':</label>' +
+                        '<select name="language" id="language" size="1" class="xcSelect">' +
+                        '<option value="nl">' + pWin.xcT('Dutch') + ' (Dutch)</option>' +
+                        '<option value="en">' + pWin.xcT('English') + ' (English)</option>' +
+                        '<option value="fr">' + pWin.xcT('French') + ' (French)</option>' +
+                        '<option value="de">' + pWin.xcT('German') + ' (German)</option>' +
+                        '<option value="he">' + pWin.xcT('Hebrew') + ' (Hebrew)</option>' +
+                        '<option value="it">' + pWin.xcT('Italian') + ' (Italian)</option>' +
+                        '<option value="ko">' + pWin.xcT('Korean') + ' (Korean)</option>' +
+                        '<option value="pl">' + pWin.xcT('Polish') + ' (Polish)</option>' +
+                        '<option value="pt">' + pWin.xcT('Portuguese') + ' (Portuguese)</option>' +
+                        '<option value="ru">' + pWin.xcT('Russian') + ' (Russian)</option>' +
+                        '<option value="es">' + pWin.xcT('Spanish') + ' (Spanish)</option>' +
+                        '<option value="zh">' + pWin.xcT('Simplified Chinese') + ' (Simplified Chinese)</option>' +
+                        '</select>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper button xcSubmit">' +
+                        '<input type="button" id="update_button" value="' + pWin.xcT('Update') + '" class="xcButton" onClick="xcUpdateLanguage(this.form.language.value);" />' +
+                        '</div>';
+              document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+
+ </body>
+</html>

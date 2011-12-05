@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>User Details</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+    var jid = JQ(document).getUrlParam('jid');
+    var contact = pWin.xcContactExists(jid); // will come back does not exist if MUC person we are retrieving for
+    /**
+     * Send request directly to the users client to retrieve OS information
+     */
+    function xcUserOS() {
+      try {
+        var iq = new JSJaCIQ();
+        iq.setType('get');
+        iq.setTo(jid + '/' + contact.getResource());
+        iq.setID('userOSPacket1');
+        pWin.con.send(iq, window.xcGetUserOSVrfy);
+      } catch (e) {} // ignore if any errors occur at this point
+    }
+
+    /**
+     * @param {JSJaCIQ} iq stanza returned by the server
+     */
+    function xcGetUserOSVrfy(iq) {
+      if (!iq || iq.isError()) { return true; }; // was not supported by the users client, ignore
+      var html = '<div class="xcFieldWrapper"><label>' + pWin.xcT('Name') + ':</label><span>' + JQ(iq.getDoc()).find('name').text() + '</span></div>' +
+                 '<div class="xcFieldWrapper"><label>' + pWin.xcT('OS') + ':</label><span>' + JQ(iq.getDoc()).find('os').text() + '</span></div>' +
+                 '<div class="xcFieldWrapper"><label>' + pWin.xcT('Version') + ':</label><span>' + JQ(iq.getDoc()).find('version').text() + '</span></div>';
+      JQ('.xcUserDetails').append(html);
+    }
+
+    /**
+     * @param {JSJaCIQ} iq stanza with VCard information
+     */
+    function xcShowUserInformation(iq) {
+      if (iq.isError()) {
+        JQ('#msg').addClass('.xcError').html(pWin.xcErrorProcess(iq)).show();
+        return false;
+      }
+      JQ('div.xcTitle').append(': ' + iq.getFrom());
+      var html = '';
+      JQ(iq.getDoc()).find('vCard').children().each(function() {
+        // if the node has children then process the child elements
+        if(JQ(this).children().size() > 0) {
+          JQ(this).children().each(function() {
+            if (JQ(this).get(0).nodeName != "TYPE" && JQ(this).get(0).nodeName != "BINVAL") {
+              html += '<div class="xcFieldWrapper"><label>' + JQ(this).get(0).nodeName + ':</label> <span>' + JQ(this).text() + '</span></div>';
+            };
+          });
+        } else {
+          var name = JQ(this).get(0).nodeName;
+          // making sure we do not show any button data on the screen since we do not need that
+          if (name.indexOf('button') == -1) {
+            if (JQ(this).get(0).nodeName != "TYPE" && JQ(this).get(0).nodeName != "BINVAL") {
+              html += '<div class="xcFieldWrapper"><label>' + JQ(this).get(0).nodeName + ':</label> <span>' + JQ(this).text() + '</span></div>';
+            };
+          }
+        }
+      });
+      JQ('.xcUserDetails').append(pWin.xcVCardReplaceAliases(html));
+    }
+
+    JQ(document).ready(function() {
+      try {
+        var iq = new JSJaCIQ();
+        iq.setType('get');
+        iq.setTo(jid);
+        iq.appendNode(iq.buildNode('vCard', {xmlns: pWin.NS_VCARD}));
+        pWin.con.send(iq, window.xcShowUserInformation);
+      } catch (e) {
+        JQ('#msg').addClass('xcError').append(e.message).show();
+      }
+      // if server supports then we can try sending to the client of the user to see if
+      // we can get OS information back from them per XEP-0092
+      if (pWin.xmppclient_version == 1 && (contact)) {
+        xcUserOS(); // send request for client server information
+      }
+      JQ('div#msg').click(function() {
+        JQ(this).html('').removeClass('xcError').hide();
+      });
+    });
+    /**
+     * Setting default action for the screen when a user is on it
+     */
+    JQ(document).keydown(function(e) {
+      var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+      if (keycode == 13) {
+        window.close(); // enter key pressed
+        return false;
+      };
+      return true;
+    });
+    // make sure the window is removed from the list of open windows
+    JQ(window).unload(function() {
+      try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcUserDetails">
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('User Details'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <div class="xcUserDetails"></div>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+
+ </body>
+</html>

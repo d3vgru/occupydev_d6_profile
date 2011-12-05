@@ -1,0 +1,101 @@
+<?php
+// $Id: xmpp_vcard.install,v
+
+/**
+ * Implementation of hook_enable().
+ */
+function xmpp_vcard_enable() {
+  drupal_set_message(t('XMPP Vcard module successfully installed.'));
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function xmpp_vcard_install() {
+  variable_set('xmpp_vcard_schema_version', 6002);
+  drupal_install_schema('xmpp_vcard');
+  // Populate the xmpp vcard fields table with some known values
+  _xmpp_vcard_populate_table();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmpp_vcard_uninstall() {
+  drupal_uninstall_schema('xmpp_vcard');
+  // Removing the variables this module utilizes
+  variable_del('xmpp_vcard_profile_type');
+  variable_del('xmpp_vcard_field_mapping');
+}
+
+/**
+ * Implementation of hook_schema()
+ */
+function xmpp_vcard_schema() {
+  return array(
+    'xmpp_vcard_fields' => array(
+      'description' => t("Stores the fields we currently support for the XMPP Vcards"),
+      'fields' => array(
+        'name' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+        'title' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      ),
+      'primary key' => array('name'),
+    )
+  );
+}
+
+/**
+ * Populates the xmpp vcard fields table with known values
+ */
+function _xmpp_vcard_populate_table() {
+  $data = array('FAMILY' => 'Last Name', 'GIVEN' => 'First Name', 'ORGNAME' => 'Company Name', 'LOCALITY' => 'City', 'CTRY' => 'Country', 'DESC' => 'Information');
+  foreach ($data as $name => $value) {
+    db_query("INSERT INTO {xmpp_vcard_fields} (name, title) VALUES ('%s', '%s')", $name, $value);
+  }
+}
+
+
+/**
+ * Update the mapping variable to the new format utilized by the xmpp vcard module
+ */
+function xmpp_vcard_update_6000() {
+  $mappings = variable_get('xmpp_vcard_field_mapping', '');
+  $field_mappings = array();
+  foreach (explode("\n", $mappings) as $mapping) {
+    $map = explode("|", trim($mapping));
+    if (drupal_strlen(trim($map[0]))) {
+      $field_mappings[trim($map[0])] = trim($map[2]);
+    }
+  }
+  variable_del('xmpp_vcard_field_mapping');
+  variable_set('xmpp_vcard_field_mapping', $field_mappings);
+  variable_set('xmpp_vcard_schema_version', 6000);
+}
+
+/**
+ * Creating new database table xmpp_vcard_fields
+ */
+function xmpp_vcard_update_6001() {
+  $schema['xmpp_vcard_fields'] = array(
+    'description' => t("Stores the fields we currently support for the XMPP Vcards"),
+    'fields' => array(
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+    ),
+    'primary key' => array('name'),
+  );
+  $ret = array();
+  if (!db_table_exists('xmpp_vcard_fields')) {
+    db_create_table($ret, 'xmpp_vcard_fields', $schema['xmpp_vcard_fields']);
+  }
+  variable_set('xmpp_vcard_schema_version', 6001);
+  return $ret;
+}
+
+/**
+ * Populating the fields of the new xmpp_vcard_fields table
+ */
+function xmpp_vcard_update_6002() {
+  _xmpp_vcard_populate_table();
+  variable_set('xmpp_vcard_schema_version', 6002);
+}

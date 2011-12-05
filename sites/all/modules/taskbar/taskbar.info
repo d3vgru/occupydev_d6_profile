@@ -1,0 +1,10 @@
+name = Taskbar
+description = Add a ajaxified taskbar with realtime activities for your website
+core = 6.x
+package = "Taskbar"
+; Information added by drupal.org packaging script on 2011-09-27
+version = "6.x-1.0-beta6"
+core = "6.x"
+project = "taskbar"
+datestamp = "1317156408"
+

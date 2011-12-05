@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Presence</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript">
+   var pWin = window.opener || window;
+   // adding the style sheet based off the information we have in the client settings
+   document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+   /**
+    * Set message information and then activate timeout to clear it
+    * @param {String} msg The message to set
+    * @action sets the message and calls the timeout to clear it
+    */
+   function xcSetMsg(msg, error) {
+     if (JQ('div#msg').children().size() > pWin.XC.LOGSIZE) {
+       JQ('div#msg').children(':first-child').remove();
+     }
+     if (error) {
+       JQ('#msg').addClass('xcError').append('<div>' + msg + '</div>').show();
+     } else {
+       JQ('#msg').removeClass('xcError').append('<div>' + msg + '</div>').show();
+     }
+   };
+
+   function xcPresenceSend(to, show) {
+     try {
+       var p = new JSJaCPresence();
+       p.setTo(to);
+       if (show) { p.setShow(show); };
+       pWin.con.send(p);
+       window.close();
+     } catch (e) {
+       xcSetMsg(pWin.xcT('Could not send user presence') + ': ' + e.message, true);
+     }
+     return false;
+   };
+   /**
+    * Setting default action for the screen when a user is on it
+    */
+   JQ(document).keydown(function(e) {
+     var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+     if (keycode == 13) {
+       xcPresenceSend(); // enter key pressed
+       return false;
+     };
+     return true;
+   });
+
+   JQ(document).ready(function() {
+     if ((jid = JQ(document).getUrlParam('jid'))) {
+       JQ('form#presenceForm input#to').val(jid);
+     } else {
+       xcSetMsg(pWin.xcT('No Chat ID information received'), true);
+       setTimeout('window.close()', pWin.XC.ERRORTIMEOUT);
+     };
+     // Adding click handler to the message div
+     JQ('div#msg').click(function() {
+       JQ(this).html('').removeClass('xcError').hide();
+     });
+   });
+
+   JQ(window).unload(function(){
+     try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+   });
+
+  </script>
+ </head>
+ <body id="xcPresenceOther">
+
+  <div id="xcChat">
+
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+        <h1>
+         <script type="text/javascript">
+           document.write(pWin.xcT('Send Directed Presence'));
+         </script>
+        </h1>
+        <a href="#" onclick="window.close()" class="close right">Close</a>
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcContent">
+        <form id="presenceForm" name="presenceForm" onSubmit="xcPresenceSend(document.forms['presenceForm'].to.value, document.forms['presenceForm'].show.value);" action="javascript:;">
+          <script type="text/javascript">
+            var str = '<div class="xcFieldWrapper text_field">' +
+                      '<label for="to" id="to_lbl" class="xcLabel" title="' + pWin.xcT('Person you are sending your presence too') + '">' + pWin.xcT('To') + '</label>' +
+                      '<input type="text" name="to" value="" size="30" id="to" disabled class="xcInput" />' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper select">' +
+                      '<label for="show" id="show_lbl" class="xcLabel" title="' + pWin.xcT('Presence you will display to that user') + '">' + pWin.xcT('Show') + ':</label>' +
+                      '<div id="show_holder">' +
+                      '<select name="show" id="show" size="1" class="xcSelect">' +
+                      '<option value="" selected>' + pWin.xcT('Available') + '</option>' +
+                      '<option value="away">' + pWin.xcT('Away') + '</option>' +
+                      '<option value="dnd">' + pWin.xcT('Do Not Disturb') + '</option>' +
+                      '<option value="xa">' + pWin.xcT('Extended Away') + '</option>' +
+                      '<option value="chat">' + pWin.xcT('Available for Chat') + '</option>' +
+                      '</select>' +
+                      '</div>' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper button xcSubmit">' +
+                      '<input type="submit" id="submit_button" name="submit_button" value="' + pWin.xcT('Send') + '" class="xcButton" />' +
+                      '<input type="button" id="cancel_button" name="cancel_button" value="' + pWin.xcT('Cancel') + '" class="xcButton" onClick="window.close();" />' +
+                      '</div>';
+            document.write(str);
+          </script>
+        </form>
+      </div>
+      <div id="msg" class="xcMessage"></div>
+    </div>
+
+    <div id="xcFooterContainer">
+      <div id="xcFooter">
+
+      </div>
+    </div>
+
+  </div>
+ </body>
+</html>

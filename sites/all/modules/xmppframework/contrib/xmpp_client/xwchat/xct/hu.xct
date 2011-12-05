@@ -1,0 +1,22 @@
+/**
+ * Translation for XMPP Thin Client
+ * English to Hungarian
+ */
+
+XC.localizedString = {
+  "Arabic" : "Arab",
+  "Chinese" : "Kínai",
+  "Dutch" : "Holland",
+  "English" : "Angol",
+  "Finnish" : "Finn",
+  "French" : "Francia",
+  "German" : "Német",
+  "Hungarian" : "Magyar",
+  "Italian" : "Olasz",
+  "Korean" : "Koreai",
+  "Lithuanian" : "Litván",
+  "Romanian" : "Román",
+  "Russian" : "Orosz",
+  "Spanish" : "Spanyol",
+  "Turkish" : "Török"
+};

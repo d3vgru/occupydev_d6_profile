@@ -1,0 +1,16 @@
+; $Id: notifications_digest.info,v 1.1.4.2 2010/03/25 17:45:18 jareyero Exp $
+name = Digest notifications
+description = Digest notifications to include more than one in a single message.
+package = "Notifications"
+dependencies[] = messaging
+dependencies[] = token
+dependencies[] = notifications
+core = 6.x
+php = 5.0
+
+; Information added by drupal.org packaging script on 2010-08-01
+version = "6.x-4.0-beta7"
+core = "6.x"
+project = "notifications"
+datestamp = "1280696476"
+

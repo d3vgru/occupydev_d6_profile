@@ -1,0 +1,24 @@
+// $Id: UPGRADE.txt,v 1.1.2.8 2009/09/25 20:51:04 darrenferguson Exp $
+
+================================================================
+UPGRADING FROM VERSION 6.x-1.1 to 6.x-2
+================================================================
+THE XMPPFRAMEWORK MODULE PROVIDES AN UPGRADE PATH TO TRY AND KEEP ANY 
+CHANGES TO A MINIMAL AND TO TRY AND ENSURE NO DATA FOR YOUR USERS IS 
+LOST. BEFORE ATTEMPTING THIS UPGRADE PLEASE BACKUP YOUR DATABASE SO YOU 
+CAN REVERT BACK IF SOMETHING GOES WRONG.
+
+1) Before installing 6.x-2 please go to your site and disable the following
+modules. xmppclient, xmpp_messaging and xmpp_notifications. Admin / Site 
+Building / Modules un-check these but "DO NOT" un-install them at this time.
+
+2) Completely remove the xmppframework directory from your file system and 
+download the xmppframework 6.x-2 version from http://drupal.org/project/xmppframework.
+
+3) Untar the xmppframework module and place under your modules directory.
+
+4) Enable the xmpp_user and xmpp_client modules in the system. 
+
+The modules should now be ready to use if the copy of the data from the old 
+xmppclient module has been successful. If you wish you can manually remove 
+the xmppclient_user and xmppclient_user_properties tables.

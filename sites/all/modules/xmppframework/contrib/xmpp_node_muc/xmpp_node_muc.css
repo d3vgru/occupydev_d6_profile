@@ -1,0 +1,153 @@
+/*<![CDATA[*/
+
+/* Utilized for messaging the user */
+.xmpp_node_muc_msg_alert {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  border: 1px solid orange;
+  background-color: #eeeeee; }
+  .xmpp_node_muc_msg_alert .title {
+    font-weight: bold;
+    font-size: 10pt; }
+  .xmpp_node_muc_msg_alert .message {
+    font-size: 8pt; }
+
+.xmpp_node_muc_conversation_list {
+  padding: 5px 5px 3px 5px; }
+  .xmpp_node_muc_conversation_list a {
+    text-decoration: none; }
+
+.xmpp_node_muc_temporary_conversations {
+  font-size: 8pt;
+  padding: 2px; }
+  .xmpp_node_muc_temporary_conversations .xmpp_node_muc_temporary_conversation {
+    padding: 1px; }
+
+.xmpp_node_muc_group_list {
+  font-size: 8pt;
+  padding: 2px;
+  display: none; }
+  .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item {
+    padding: 1px;
+    font-weight: bold; }
+    .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item .xmpp_node_muc_group_list_item_name {}
+      .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item .xmpp_node_muc_group_list_item_name div {
+        padding: 1px; }
+        .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item .xmpp_node_muc_group_list_item_name div span.message {
+          font-weight: normal; }
+      .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item .xmpp_node_muc_group_list_item_name .xmpp_node_muc_group_join {
+        font-weight: bold;
+        float: right;
+        position:relative;
+        z-index: 100; }
+    .xmpp_node_muc_group_list .xmpp_node_muc_group_list_item .xmpp_node_muc_group_list_item_name.sub {}
+
+.xmpp_node_muc_online {
+  font-size: 8pt;
+  padding: 2px;
+  display: none; }
+  .xmpp_node_muc_online .xmpp_node_muc_online_count {
+    font-weight: bold; }
+    .xmpp_node_muc_online .xmpp_node_muc_online_count span.message {
+      font-weight: normal; }
+  .xmpp_node_muc_online .xmpp_node_muc_online_users {
+    display: none; }
+  .xmpp_node_muc_online .xmpp_node_muc_online_show {
+    font-weight: bold;
+    float: right;
+    position:relative;
+    z-index: 100; }
+    .xmpp_node_muc_online .xmpp_node_muc_online_show a {
+      text-decoration: none; }
+
+.xmpp_node_muc_activity {
+  font-size: 8pt;
+  padding: 2px;
+  display: none; }
+  .xmpp_node_muc_activity .xmpp_node_muc_activity_last {
+    font-weight: bold; }
+    .xmpp_node_muc_activity .xmpp_node_muc_activity_last span.message {
+      font-weight: normal; }
+  .xmpp_node_muc_activity .xmpp_node_muc_activity_log {
+    display: none; }
+    .xmpp_node_muc_activity .xmpp_node_muc_activity_log .xmpp_node_muc_activity_log_message {
+      padding: 1px;
+      border-bottom: 1px solid #032341; }
+  .xmpp_node_muc_activity .xmpp_node_muc_activity_show {
+    font-weight: bold;
+    float: right;
+    position: relative;
+    z-index: 100; }
+    .xmpp_node_muc_activity .xmpp_node_muc_activity_show a {
+      text-decoration: none; }
+
+table#xmpp_node_muc_mucs {}
+  table#xmpp_node_muc_mucs tr.xmpp_node_muc_muc_title {
+    background-color: #eeeeee;
+    border-bottom: 1px solid black; }
+    table#xmpp_node_muc_mucs tr.xmpp_node_muc_muc_title td {
+      font-weight: bold;
+      padding: 1px; }
+
+div#xmpp_node_muc_mucs_logs {}
+  div#xmpp_node_muc_mucs_logs table {}
+    div#xmpp_node_muc_mucs_logs table tr.header {
+      border-bottom: 1px solid black; }
+      div#xmpp_node_muc_mucs_logs table tr.header td {
+        font-weight: bold; }
+    div#xmpp_node_muc_mucs_logs table tr.data_body {
+      vertical-align: top; }
+
+.xmpp_node_muc_temporary_log_message.title {
+  padding: 2px;
+  font-weight: bold;
+  font-size: 8pt; }
+  .xmpp_node_muc_temporary_log_message.title div.date {
+    padding: 5px;
+    float: left; }
+  .xmpp_node_muc_temporary_log_message.title div.user {
+    padding: 5px;
+    float: left; }
+  .xmpp_node_muc_temporary_log_message.title div.message {
+    padding: 5px; }
+
+.xmpp_node_muc_temporary_log_message {
+  padding: 2px;
+  font-weight: normal;
+  font-size: 8pt; }
+  .xmpp_node_muc_temporary_log_message div.date {
+    padding: 5px;
+    float: left; }
+  .xmpp_node_muc_temporary_log_message div.user {
+    padding: 5px;
+    float: left; }
+  .xmpp_node_muc_temporary_log_message div.message {
+    padding: 5px; }
+
+/* New Styles */
+#region-right #block-xmpp_node_muc-xmpp_node_muc_room .block-content .block-content-inner {
+	padding: 20px 30px; }
+.xmpp_node_muc_group_channel_header {
+	background-color: #3d3d3d;
+	padding: 5px;
+	margin-bottom: 1px; }
+  .xmpp_node_muc_group_channel_header .xmpp_node_muc_group_channel_title {
+  	font-weight: bold;
+ 		margin-right: 5px;
+ 		float: left; }
+  .xmpp_node_muc_group_channel_header .xmpp_node_muc_group_people_count {
+  	font-style: italic;
+ 		float: left; }
+  .xmpp_node_muc_group_channel_header .xmpp_node_muc_group_join {
+		float: right;
+		margin: 0px 5px; }
+  .xmpp_node_muc_group_list {
+	  padding: 0px; }
+	.xmpp_node_muc_group_list li {
+	  list-style-type: none;
+	  background-color: #2D2D2D;
+		margin-bottom: 1px;
+		padding: 5px; }
+	.xmpp_node_muc_group_list li .xmpp_node_muc_list_item_timestamp {
+		font-weight: bold; }

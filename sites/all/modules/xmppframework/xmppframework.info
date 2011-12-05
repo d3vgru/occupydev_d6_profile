@@ -1,0 +1,13 @@
+; $Id: xmppframework.info,v 1.1.2.1.2.15 2009/09/25 20:51:04 darrenferguson Exp $
+name = XMPP-Framework
+description = Provides an xmpp framework for Drupal
+package = "XMPP Framework"
+core = 6.x
+project = "xmpp"
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

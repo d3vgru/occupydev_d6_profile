@@ -1,0 +1,217 @@
+// CCK Node template for the XMPPChat content type.
+
+$content[type]  = array (
+  'name' => 'XMPPChat',
+  'type' => 'xmppchat',
+  'description' => 'This is for xmpp chats',
+  'title_label' => 'Title',
+  'body_label' => 'Body',
+  'min_word_count' => '0',
+  'help' => '',
+  'node_options' => 
+  array (
+    'status' => true,
+    'promote' => true,
+    'sticky' => false,
+    'revision' => false,
+  ),
+  'save_as_draft' => 0,
+  'language_content_type' => 0,
+  'notifications_node_ui' => 
+  array (
+    'links' => true,
+    'form' => false,
+    'comment' => false,
+    'block' => false,
+  ),
+  'old_type' => 'xmppchat',
+  'orig_type' => '',
+  'module' => 'node',
+  'custom' => '1',
+  'modified' => '1',
+  'locked' => '0',
+  'og_content_type_usage' => 'group_post_standard_mail',
+  'content_profile' => false,
+  'comment' => '2',
+  'comment_default_mode' => '4',
+  'comment_default_order' => '1',
+  'comment_default_per_page' => '50',
+  'comment_controls' => '3',
+  'comment_anonymous' => 0,
+  'comment_subject_field' => '1',
+  'comment_preview' => '1',
+  'comment_form_location' => '0',
+  'file_attach_node' => 1,
+  'file_attach_comment' => 1,
+  'ant' => 0,
+  'ant_pattern' => '',
+  'ant_php' => '',
+  'feedapi' => 
+  array (
+    'enabled' => 0,
+    'refresh_on_create' => 0,
+    'update_existing' => 1,
+    'skip' => 0,
+    'items_delete' => '0',
+  ),
+);
+$content[groups]  = array (
+  0 => 
+  array (
+    'label' => 'XMPP Chat Transcript',
+    'group_type' => 'standard',
+    'settings' => 
+    array (
+      'form' => 
+      array (
+        'style' => 'fieldset_collapsible',
+        'description' => '',
+      ),
+      'display' => 
+      array (
+        'description' => '',
+        'teaser' => 'fieldset',
+        'full' => 'fieldset',
+        0 => NULL,
+        1 => NULL,
+        2 => NULL,
+        'token' => NULL,
+        'label' => 'fieldset',
+      ),
+    ),
+    'weight' => '-3',
+    'group_name' => 'group_xmpp_chat_transcript',
+  ),
+);
+$content[fields]  = array (
+  0 => 
+  array (
+    'label' => 'Chat Type',
+    'field_name' => 'field_chat_type',
+    'type' => 'text',
+    'widget_type' => 'optionwidgets_select',
+    'change' => 'Change basic information',
+    'weight' => 0,
+    'description' => '',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => NULL,
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => NULL,
+    'group' => 'group_xmpp_chat_transcript',
+    'required' => 0,
+    'multiple' => '0',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => 'group_chat
+single_chat',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'text',
+    'widget_module' => 'optionwidgets',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => false,
+        'sortable' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'label' => 
+      array (
+        'format' => 'above',
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+      ),
+    ),
+  ),
+  1 => 
+  array (
+    'label' => 'Participants',
+    'field_name' => 'field_participants',
+    'type' => 'text',
+    'widget_type' => 'text_textarea',
+    'change' => 'Change basic information',
+    'weight' => '1',
+    'rows' => '10',
+    'size' => 60,
+    'description' => '',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => '',
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => 
+    array (
+      'field_participants' => 
+      array (
+        0 => 
+        array (
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_participants][0][value',
+        ),
+      ),
+    ),
+    'group' => 'group_xmpp_chat_transcript',
+    'required' => 0,
+    'multiple' => '0',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'text',
+    'widget_module' => 'text',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => false,
+        'sortable' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'label' => 
+      array (
+        'format' => 'above',
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+      ),
+    ),
+  ),
+);
+

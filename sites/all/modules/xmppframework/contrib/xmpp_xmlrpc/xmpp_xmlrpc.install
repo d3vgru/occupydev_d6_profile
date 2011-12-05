@@ -1,0 +1,24 @@
+<?php
+// $Id: xmpp_xmlrpc.install,v
+
+/**
+ * Implementation of hook_enable().
+ */
+function xmpp_xmlrpc_enable() {
+  drupal_set_message(t('XMPP XMLRPC module successfully installed. Please review the <a href="@settings">configuration settings</a>.', array('@settings' => url('admin/xmppframework/xmlrpc'))));
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function xmpp_xmlrpc_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmpp_xmlrpc_uninstall() {
+  variable_del('xmpp_xmlrpc_url');
+  variable_del('xmpp_xmlrpc_port');
+  variable_del('xmpp_xmlrpc_query_string');
+}

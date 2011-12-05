@@ -1,0 +1,12 @@
+; $Id: notifications_nodetype.info,v 1.1.2.1 2010/04/09 18:48:34 jareyero Exp $
+name = Content Type extension
+description = Provides different events and templates for each content type
+package = "Notifications"
+dependencies[] = notifications_content
+core = 6.x
+; Information added by drupal.org packaging script on 2010-08-01
+version = "6.x-4.0-beta7"
+core = "6.x"
+project = "notifications"
+datestamp = "1280696476"
+

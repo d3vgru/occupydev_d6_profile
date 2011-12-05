@@ -1,0 +1,1134 @@
+/*<![CDATA[*/
+
+@import 'reset.css';
+
+html, body { height: 100%; }
+body {
+  min-width: 275px;
+  overflow: hidden; }
+
+body,
+input,
+textarea {
+  font: 10px/16px Helvetica, Arial, sans-serif; }
+
+textarea {
+  line-height: 14px; }
+
+a {
+  color: #1B3B6C;
+  text-decoration: none; }
+  a img {
+    border: none; }
+a:hover {
+  color: #4e6eaf; }
+
+#xcMUCLink a,
+#xcRosterMUCIcon a {
+  display: block;
+  padding-top: 2px;
+  padding-left: 21px;
+  background: url(img/group-chat.gif) no-repeat left top; }
+
+h3 {
+  font-size: 12px;
+  font-weight: bold; }
+  h3 span {
+    float: left;
+    line-height: 14px; }
+  h3 a {
+    float: right;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: normal; }
+
+strong {
+  font-weight: bold; }
+
+ul.xcLinks {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+  ul.xcLinks li {
+    float: left;
+    margin-right: 10px; }
+  ul.xcLinks li.right {
+    float: right;
+    margin: 0 0 0 10px; }
+ul.xcLinks.right {
+  float: right; }
+
+/* FORMS */
+fieldset {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #ccc; }
+  fieldset legend {
+    padding: 4px 5px 3px 5px;
+    color: #fff;
+    line-height: 1;
+    font-size: 9px;
+    background: #888; }
+
+.xcFieldWrapper {
+  line-height: 1; }
+  .xcFieldWrapper {
+    padding: 1px 0; }
+  .xcFieldWrapper.button {
+    padding: 10px 0 0 130px; }
+  .xcFieldWrapper.text_field label,
+  .xcFieldWrapper.select label {
+    margin-right: 5px; }
+  .xcFieldWrapper.text_field label {
+    float: left;
+    line-height: 20px;
+    width: 125px; }
+  .xcFieldWrapper input {}
+  .xcFieldWrapper.checkbox label {
+    margin-left: 5px; }
+  .xcFieldWrapper.checkbox input {
+    width: 11px;
+    height: 11px; }
+  .xcFieldWrapper input.xcAutoClear {
+    color: #777; }
+  .xcFieldWrapper.button .xcFormCancel {
+    padding-left: 3px;
+    font-size: 9px; }
+
+.xcSelect {
+  font-size: 10px;
+  border: 1px solid #555;
+  border-bottom-color: #bbb;
+  border-right-color: #bbb; }
+
+.xcSelect:focus {}
+
+.xcInput {
+  padding: 3px 2px;
+  font-size: 10px;
+  border: 1px solid #555;
+  border-bottom-color: #bbb;
+  border-right-color: #bbb; }
+
+.xcInput:focus {}
+
+.xcLabel {}
+
+.xcButton {}
+
+.xcInnerPadding {
+  padding: 10px; }
+
+#xcChat {
+  height: 100%;
+  min-width: 275px;
+  overflow: hidden; }
+
+  #xcHeaderWrapper {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    line-height: 13px;
+    background: #0F3165 url(img/header-bg.png) repeat-x left top; }
+    #xcTabs {
+      font-size: 12px;
+      color: #fff;
+      font-weight: bold;
+      border-bottom: 3px solid #fff;
+      margin-left: 5px;
+      margin-right: 5px; }
+      #xcTabs .xcTabDiv {
+        background-position: left center;
+        background-repeat: no-repeat;
+        display: inline;
+        padding: 8px 14px 6px;
+        cursor: pointer;
+        float: left; }
+        #xcTabs .xcTabDiv a {
+          float: right;
+          margin-left: 10px; }
+      #xcTabs .xcTabDiv.active,
+      #xcTabs .xcTabDiv .active {
+        background-color: #00f;
+        border-left: 2px;
+        border-right: 2px;
+        border-top: 2px;
+        border-style: solid;
+        border-color: #fff; }
+      #xcTabs .xcTabDiv.newmsg,
+      #xcTabs .xcTabDiv .newmsg {
+        color: #f00; }
+    #xcHeader {
+      padding: 6px 10px;
+      font-size: 9px;
+      color: #fff; }
+      #xcHeader .xcTitle {
+        font-size: 10px;
+        color: #fff; }
+      #xcHeader a {
+        color: #C0D9F1; }
+      #xcHeader a:hover {
+        color: #fff; }
+    #xcHeaderWrapper h1 {
+      float: left;
+      font-size: 10px;
+      font-weight: bold; }
+    #xcHeaderWrapper a.close {
+      display: block;
+      width: 12px;
+      height: 12px;
+      line-height: 11px;
+      text-indent: -9999px;
+      background: url(img/close-window.gif) no-repeat left top; }
+    #xcHeaderWrapper a.close.right {
+      float: right; }
+
+  #xcWrapper {
+    z-index: 9;
+    width: 100%;
+    overflow: auto; }
+    #xcContent {
+      position: relative;
+      padding: 10px; }
+
+  #xcFooterWrapper {
+    position: absolute;
+    z-index: 10;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #c5c5c5;
+    background: #e5e5e5; }
+    #xcFooter {
+      padding: 5px 10px;
+      font-size: 9px;
+      line-height: 1;
+      color: #fff;
+      border-top: 1px solid #f5f5f5; }
+      #xcFooter .xcLinks a {
+        display: block;
+        padding-top: 3px; }
+        #xcFooter .xcLinks a span.plus {
+          font-weight: bold; }
+      /*#xcFooter a {
+              color: #C0D9F1; }
+            #xcFooter a:hover {
+              color: #fff; }*/
+
+/* SPINNER */
+.xcMessage,
+#xcSpinner {
+  cursor:pointer;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 3px 5px;
+  line-height: 1;
+  color: #fff;
+  background: #FFAA0F; }
+.xcError {
+  background: #f00; }
+
+/* CONTEXT MENUS */
+.xcBookmarkContextMenu,
+.xcContextMenu {
+  display: none;
+  position: absolute;
+  z-index: 9999; }
+  .xcBookmarkContextMenu ul,
+  .xcContextMenu ul {
+    min-width: 125px;
+    padding: 5px;
+    margin: 0;
+    list-style: none;
+    line-height: 1;
+    border: 1px solid #aaa;
+    border-bottom: 2px solid #888;
+    border-right: 2px solid #888;
+    background: #fff; }
+    .xcBookmarkContextMenu ul li,
+    .xcContextMenu ul li {
+      cursor: pointer;
+      padding: 4px 5px;
+      border-bottom: 1px solid #eee; }
+    .xcBookmarkContextMenu ul li.xcOver,
+    .xcContextMenu ul li.xcOver {
+      background-color: #eee; }
+
+/* USER INFORMATION POPUP */
+.xcUserInformation {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  left: 50px;
+  width: 300px;
+  border: 1px solid black;
+  padding: 5px;
+  background-color: #eee; }
+  .xcUserInformation div label {
+    font-weight: bold; }
+  .xcUserInformation div.link {
+    color: #fff;
+    float: right;
+    background: url(img/close-window.gif) no-repeat left top;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #fff; }
+    .xcUserInformation div.link a {
+      text-indent: -9999px;
+      display: block;
+      color: #fff;
+      width: 12px;
+      height: 12px;
+      line-height: 11px; }
+
+/* ICONS */
+.xcContact.presence,
+.xcContact .presence {
+  background-position: 0 50%;
+  background-repeat: no-repeat; }
+.available,
+.chat,
+.xcContact.available,
+.xcContact .available,
+.xcContact.chat,
+.xcContact .chat {
+  background-image: url(img/icons/contact/available.png); }
+.busy,
+.xcContact.busy,
+.xcContact .busy,
+.away,
+.xcContact.away,
+.xcContact .away,
+.dnd,
+.xcContact.dnd,
+.xcContact .dnd {
+  background-image: url(img/icons/contact/dnd.png); }
+.unavailable,
+.xcContact.unavailable,
+.xcContact .unavailable {
+  background-image: url(img/icons/contact/unavailable.png); }
+.offline,
+.xcContact.offline,
+.xcContact .offline {
+  background-image: url(img/icons/contact/offline.png); }
+
+* html .available,
+* html .chat,
+* html .xcContact.available,
+* html .xcContact .available,
+* html .xcContact.chat,
+* html .xcContact .chat {
+  background-image: url(img/icons/contact/available.png); }
+* html .busy,
+* html .xcContact.busy,
+* html .xcContact .busy,
+* html .away,
+* html .xcContact.away,
+* html .xcContact .away,
+* html .dnd,
+* html .xcContact.dnd,
+* html .xcContact .dnd {
+  background-image: url(img/icons/contact/dnd.png); }
+* html .unavailable,
+* html .xcContact.unavailable,
+* html .xcContact .unavailable {
+  background-image: url(img/icons/contact/unavailable.png); }
+* html .offline,
+* html .xcContact.offline,
+* html .xcContact .offline {
+  background-image: url(img/icons/contact/offline.png); }
+
+.xcUser.presence,
+.xcUser .presence {
+  background-position: 0 50%;
+  background-repeat: no-repeat; }
+.xcUser.available,
+.xcUser .available,
+.xcUser.chat,
+.xcUser .chat {
+  background-image: url(img/icons/user/available.png); }
+.xcUser.busy,
+.xcUser .busy,
+.xcUser.away,
+.xcUser .away,
+.xcUser.dnd,
+.xcUser .dnd {
+  background-image: url(img/icons/user/dnd.png); }
+.xcUser.unavailable,
+.xcUser .unavailable {
+  background-image: url(img/icons/user/unavailable.png); }
+.xcUser.offline,
+.xcUser .offline {
+  background-image: url(img/icons/user/offline.png); }
+.xcUser.invisible,
+.xcUser .invisible {
+  background-image: url(img/icons/user/invisible.png); }
+
+* html .xcUser.presence,
+* html .xcUser .presence {
+  background-position: 0 50%;
+  background-repeat: no-repeat; }
+* html .xcUser.available,
+* html .xcUser .available,
+* html .xcUser.chat,
+* html .xcUser .chat {
+  background-image: url(img/icons/user/available.png); }
+* html .xcUser.busy,
+* html .xcUser .busy,
+* html .xcUser.away,
+* html .xcUser .away,
+* html .xcUser.dnd,
+* html .xcUser .dnd {
+  background-image: url(img/icons/user/dnd.png); }
+* html .xcUser.unavailable,
+* html .xcUser .unavailable {
+  background-image: url(img/icons/user/unavailable.png); }
+* html .xcUser.offline,
+* html .xcUser .offline {
+  background-image: url(img/icons/user/offline.png); }
+* html .xcUser.invisible,
+* html .xcUser .invisible {
+  background-image: url(img/icons/user/invisible.png); }
+
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden; }
+.clearfix {display: inline-block;}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+
+.xcDrawer {
+  padding: 10px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #032341;
+  background: #EAF3FB; }
+
+/* ROSTER */
+#xcRoster {
+  background: url(img/background-gradient.png) repeat-x left bottom; }
+  #xcRoster #xcHeader {
+    padding: 11px 10px; }
+    #xcRoster #xcHeader .xcRosterMenu {
+      position: relative;
+      float: right;
+      line-height: 12px; }
+      #xcRoster #xcHeader .xcRosterMenu li {
+        margin: 0 0 0 10px; }
+    #xcRoster #xcHeader #xcUser {
+      padding-left: 20px; }
+      #xcRoster #xcHeader .xcUserNameContainer {
+        float: left;
+        display: block; }
+        #xcRoster #xcHeader .xcUserNameContainer a#xcUserName {
+          color: #fff;
+          font-size: 10px;
+          font-weight: bold; }
+        #xcRoster #xcHeader .xcUserNameContainer a#xcUserName:hover {
+          text-decoration: underline; }
+        #xcRoster #xcHeader #xcRosterPresenceSelect {}
+      #xcRoster #xcHeader .xcUserJIDContainer {
+        float: left;
+        clear: both;
+        display: none;
+        font-size: 10px;
+        font-weight: bold;
+        color: #fff;
+        padding: 2px; }
+      #xcRoster #xcHeader .xcUserPresenceToggle {
+        float: left;
+        clear: both; }
+        #xcRoster #xcHeader .xcUserPresenceToggle a {
+          display: block;
+          margin-top: 1px;
+          padding-right: 10px;
+          line-height: 1;
+          background: url(img/disclosure-triangle-vertical.gif) no-repeat right 2px; }
+        #xcRoster #xcHeader .xcUserPresenceToggle a:hover {
+          background-position: 100% -98px; }
+        #xcRoster #xcHeader .xcUserPresenceToggle a.expanded {
+          color: #fff;
+          background-position: 100% -148px; }
+        #xcRoster #xcHeader .xcUserPresenceToggle a.expanded:hover {
+          color: #C0D9F1;
+          background-position: 100% -48px; }
+  #xcRoster #xcWrapper {}
+    #xcUserPresenceContainer {
+      padding-bottom: 5px; }
+      #xcUserPresenceList {
+        margin: 0;
+        padding: 0;
+        list-style: none; }
+        #xcUserPresenceList li {
+          margin-bottom: 5px;
+          padding-left: 20px;
+          line-height: 1;
+          background-position: 0 1px;
+          background-repeat: no-repeat; }
+          #xcUserPresenceList li a {
+            float: left;
+            margin-right: 7px;
+            padding: 2px 3px;
+            background: #CDE6F5; }
+          #xcUserPresenceList li a:hover {
+            color: #fff;
+            background: #1B3B6C;}
+        #xcUserPresenceList li.available {
+          background-image: url(img/icons/user/available.png); }
+        #xcUserPresenceList li.away {
+          background-image: url(img/icons/user/away.png); }
+        #xcUserPresenceList li.invisible {
+          background-image: url(img/icons/user/invisible.png); }
+        #xcUserPresenceList .xcCustomMessage {
+          padding: 21px 0 5px 0;
+          border-bottom: 1px solid #CDE6F5; }
+          #xcUserPresenceList .xcCustomMessage input {
+            font-size: 10px; }
+        * html #xcUserPresenceList .xcCustomMessage {
+          width: 150px;
+          padding-top: 5px; }
+    #xcRoster #xcWrapper #xcContent {}
+      .xcGroupContainer {
+        display: none;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+        background: #fff; }
+        .xcGroup {
+          cursor: default;
+          color: #999;
+          border-bottom: 1px solid #ccc;
+          background: url(img/group-name-right.png) no-repeat right top; }
+          .xcGroupName {
+            display: block;
+            padding-left: 5px;
+            line-height: 1;
+            background: url(img/group-name-left.png) no-repeat left top; }
+            .xcGroupName strong {
+              display: block;
+              padding: 5px 10px 5px 15px;
+              font-weight: bold;
+              background: url(img/disclosure-triangle.gif) no-repeat 2px 7px; }
+            .xcGroupContainer.expanded .xcGroup .xcGroupName strong {
+              background-position: 2px -43px; }
+        .xcGroupContainer.collapsed {
+          border-bottom: none; }
+        .xcGroupContainer.collapsed .xcGroup {
+          border-bottom: none;
+          background-image: url(img/group-name-right-collapsed.png); }
+          .xcGroupContainer.collapsed .xcGroup .xcGroupName {
+            background-image: url(img/group-name-left-collapsed.png); }
+            .xcGroupContainer.collapsed .xcGroup .xcGroupName strong {}
+        .xcGroupContact {}
+          .xcContact {
+            display: none; }
+          .xcBookmark,
+          .xcContact {
+            cursor: pointer;
+            padding: 5px 10px 5px 5px;
+            line-height: 1;
+            border-bottom: 1px solid #eee;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc; }
+            .xcBookmarkName,
+            .xcContactName {
+              display: block;
+              float: left;
+              padding-left: 15px; }
+            .xcContactStatus {
+              float: left;
+              padding: 1px 0 0 5px;
+              font-size: 9px;
+              color: #888; }
+          .xcBookmark {}
+            .xcBookmarkName {
+              background: url(img/bookmark.gif) no-repeat top left; }
+          .xcBookmark:hover,
+          .xcContact:hover {
+            background-color: #E8F3FD; }
+
+/* SETTINGS */
+#xcConfiguration {}
+  #xcConfiguration #xcChat {}
+  #xcConfiguration #xcHeaderWrapper {}
+  #xcConfiguration #xcFooterWrapper {
+    display: none; }
+
+/* DIRECT CHAT */
+#xcMessage {}
+  #xcMessage #xcHeader {
+    padding: 8px 8px 6px; }
+    #xcMessage #xcHeader .xcLinks {
+      position: relative;
+      float: right;
+      line-height: 12px; }
+      #xcMessage #xcHeader .xcLinks li {
+        margin: 0 0 0 20px; }
+    #xcMessage #xcHeader #xcContactTitle {}
+      #xcMessage #xcHeader #xcContactTitle #alias {
+        float: left;
+        padding-left: 15px;
+        font-size: 10px;
+        font-weight: bold;
+        color: #fff;
+        background-position: left top;
+        background-repeat: no-repeat; }
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger {
+        float: left;
+        margin-left: 5px;
+        width: 10px;
+        height: 10px;
+        background: url(img/down-arrow.png) no-repeat 50% 2px; }
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger:active,
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger:focus,
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger:hover {
+        margin-top: -1px;
+        margin-left: 4px;
+        border: 1px solid #fff; }
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger:active,
+      #xcMessage #xcHeader #xcContactTitle #xcContactMenuTrigger:focus {
+        background-color: #fff;
+        background-position: 50% -48px; }
+  #xcMessage #xcContent {
+    padding-bottom: 0; }
+  #xcMessage #xcFooter {
+    padding: 5px 10px; }
+    #xcMsgContainer {}
+      #xcMsgContainer .xcMsgBody {
+        float: left;
+        width: 80%;
+        height: 28px;
+        padding: 2px;
+        margin-right: 10px;
+        border: 1px solid #333;
+        border-right-color: #999;
+        border-bottom-color: #999; }
+      #xcMsgContainer.no-button .xcMsgBody {
+        width: 98%; }
+      #xcMsgContainer .xcMsgSendButton {
+        float: left; }
+.xcChatMessage {
+  padding: 2px 2px 0 2px;
+  margin-bottom: 10px; }
+  .xcChatMessage .xcChatMessageHeader {
+    padding: 4px 5px 3px 5px;
+    color: #666;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: bold;
+    background: #fafafa; }
+    .xcChatMessage .xcChatMessageHeader .xcChatMessageTimestamp {
+      float: right; }
+    .xcChatMessage .xcChatMessageHeader .xcChatMessageSender {}
+  .xcChatMessage .xcChatMessageBody {
+    padding: 5px 5px 3px 5px; }
+  .xcChatMessage .xcChatMessageTranslatedBody {
+    padding: 5px 5px 3px 5px;
+    display: none; }
+  .xcChatMessage .xcChatMessageTranslationToggle {
+    float: right;
+    cursor: pointer; }
+.xcChatMessage.sent {
+  background: #dfdfdf; }
+.xcChatMessage.received {
+  background: #BEDCE9; }
+.xcSystemMessage {
+  margin-bottom: 5px;
+  color: #999;
+  text-align: center; }
+
+/* GROUP CHAT */
+#xcMUC.chat {
+  background: url(img/muc-occupants-bg.png) repeat-y right top; }
+  #xcMUC #workspace {
+    padding: 10px;
+    border: 1px solid #000; }
+  #xcMUC.chat #workspace {
+    padding: 0;
+    border: none; }
+  #xcMUC #xcHeader {
+    display: none; }
+  #xcMUC.chat #xcHeader {
+    display: block;
+    padding: 12px 10px 8px 10px; }
+    #xcMUC #xcHeader #xcMUCRoomInfo {
+      float: left; }
+      #xcMUC #xcHeader #xcMUCRoomInfo .xcMUCRoomName {
+        font-size: 10px;
+        font-weight: bold; }
+      #xcMUC #xcHeader #xcMUCRoomInfo #xcMUCRoomSubject {
+        padding-right: 7px;
+        color: #ddd; }
+      #xcMUC #xcHeader .xcMUCRoomSubjectToggle a {
+        padding-right: 10px;
+        background: url(img/disclosure-triangle-vertical.gif) no-repeat right 2px; }
+      #xcMUC #xcHeader .xcMUCRoomSubjectToggle a:hover {
+        background-position: 100% -98px; }
+      #xcMUC #xcHeader .xcMUCRoomSubjectToggle a.expanded {
+        color: #fff;
+        background-position: 100% -148px; }
+      #xcMUC #xcHeader .xcMUCRoomSubjectToggle a.expanded:hover {
+        color: #C0D9F1;
+        background-position: 100% -48px; }
+    #xcMUC #xcHeader .xcLinks {
+      position: relative;
+      float: right;
+      line-height: 12px; }
+      #xcMUC.chat #xcHeader .xcLinks li {
+        margin: 0 0 0 20px; }
+
+  #xcMUCRoomSubjectEditor {}
+    #xcMUCRoomSubjectEditor input {
+      width: 250px; }
+
+  #xcMUC #xcWrapper {
+    overflow: hidden; }
+    #xcMUC #xcContent {
+      padding: 0; }
+    /* Displaying the current contacts for the user */
+    #xcMUC #xcWrapper #xcMUCInviteForm #xcUserCurrentContactsDiv {
+      text-align: left; }
+      #xcMUC #xcWrapper #xcMUCInviteForm #xcUserCurrentContactsDiv .xcUserCurrentContact {
+        cursor: pointer;
+        font-weight: bold; }
+    /* below is css for user search results */
+    #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv {
+      font-weigth: bold;
+      text-align: center; }
+    #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsHeader {
+      padding: 2px; }
+      #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsHeader span.xcUserJID {
+        width: 300px;
+        float: left; }
+      #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsHeader span.xcUserSelect {
+        width: 100px; }
+    #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsData {
+      padding: 2px; }
+      #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsData span.xcUserJID {
+        width: 300px;
+        float: left; }
+      #xcMUC #xcWrapper #xcMUCInviteForm #xcUserSearchDiv #xcUserSearchResultsData span.xcUserSelect {
+        width: 100px; }
+  #xcMUC #xcMUCMessages {
+    overflow: auto;
+    margin-right: 220px; }
+    #xcMUC #xcMUCMessages .xcInnerPadding {
+      padding-bottom: 0; }
+  #xcMUC #xcMUCOccupants {
+    overflow: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 220px; }
+    #xcMUC #xcMUCOccupants #xcMUCNickname {
+      display: none; }
+    #xcMUC #xcMUCOccupants h3 {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd; }
+    #xcMUC #xcMUCOccupants #subject {
+      width: 100%; }
+    #xcMUC #xcMUCOccupants .xcMUCOccupant {
+      background: none; }
+    #xcMUC #xcMUCOccupants .xcMUCOccupant.selected {
+      background-color: #cccccc; }
+    #xcMUC #xcMUCOccupants .xcMUCOccupant.away {
+      color: #999; }
+    #xcMUC #xcMUCOccupants .xcMUCOccupant:hover {}
+  #xcMUC #xcFooterWrapper {
+    display: none; }
+  #xcMUC.chat #xcFooterWrapper {
+    display: block; }
+    #xcMUC.chat #xcFooterWrapper #xcFooter {
+      padding: 5px 10px; }
+    #xcMUC.chat #xcMsgContainer {
+      padding-right: 220px; }
+
+.xcMUCMsgPane {}
+
+/* GROUP CHAT CONFIG CSS */
+#xcMUCConfig {}
+  #xcMUCConfig #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcMUCConfig .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcMUCConfig .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 125px; }
+    #xcMUCConfig .xcFieldWrapper.text_field input[type=text] {
+      width: 200px; }
+    #xcMUCConfig .xcFieldWrapper.text_field div {
+      display: inline; }
+
+  #xcMUCConfig #xcMUCCreateRoom .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcMUCConfig #xcMUCCreateRoom .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 300px;
+    }
+    #xcMUCConfig #xcMUCCreateRoom .xcFieldWrapper.text_field input[type=text] {
+      width: 200px;
+    }
+    #xcMUCConfig #xcMUCCreateRoom .xcFieldWrapper.text_field div {
+      display: inline; }
+
+  #xcMUCConfig #xcMUCRoom {
+    padding-bottom: 5px; }
+    #xcMUCConfig #xcMUCRoom #xcMUCRoomHeader {
+      font-weight: bold;
+      background-color: #eeeeee;
+      height: 20px;
+      border: 1px solid black; }
+      #xcMUCConfig #xcMUCRoom #xcMUCRoomHeader #xcMUCRoomHeaderName {
+        float: left;
+        width: 200px; }
+      #xcMUCConfig #xcMUCRoom #xcMUCRoomHeader #xcMUCRoomHeaderDescription {
+        float: right;
+        width: 350px; }
+    #xcMUCConfig #xcMUCRoom .xcMUCRoomInfo {
+      background-color: #eeeeee;
+      height: 20px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      border-bottom: 1px solid black; }
+      #xcMUCConfig #xcMUCRoom .xcMUCRoomInfo .xcMUCRoomName {
+        float: left;
+        width: 400px; }
+      #xcMUCConfig #xcMUCRoom .xcMUCRoomInfo .xcMUCRoomDescription {
+        float: right;
+        width: 350px; }
+    #xcMUCConfig #xcMUCRoom .xcMUCRoomInfo.selected {
+      background-color: #cccccc;
+      height: 20x;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      border-bottom: 1px solid black; }
+    #xcMUCConfig #xcMUCRoom .xcMUCRoomData {
+      display: none;
+      position: relative;
+      background-color: #bbbbbb; }
+
+  #xcMUCConfig #xcMUCCreateRoom {
+    display: none; }
+    #xcMUCConfig #xcMUCCreateRoom #xcFormTable {
+      border: 1px solid black;
+      width: 550px; }
+      #xcMUCConfig #xcMUCCreateRoom #xcFormTable tr {
+        padding: 2px; }
+
+/* ADD USER CSS */
+
+#xcAddUser {}
+  #xcAddUser #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcAddUser .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcAddUser .xcFieldWrapper .xcToggleNewGroup {
+      margin-left: 5px;
+      font-size: 9px; }
+    #xcAddUser .xcFieldWrapper.select label,
+    #xcAddUser .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 125px; }
+    #xcAddUser .xcFieldWrapper input {}
+    #xcAddUser .xcFieldWrapper.select select {
+      width: 208px; }
+    #xcAddUser .xcFieldWrapper.text_field input {
+      width: 200px; }
+    #xcAddUser .xcFieldWrapper.checkbox label {}
+    #xcAddUser .xcFieldWrapper.checkbox input {}
+
+  #xcAddUser #xcWrapper .xcPopup {
+    display: none;
+    z-index: 1000; }
+    /* below css is for user search results when none are received */
+    #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcNoUserSearchResults {
+      font-weight: bold; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcNoUserSearchResults .xcTitle {
+        text-align: center; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcNoUserSearchResults .xcFieldWrapper {
+        text-align: center; }
+    /* below css is for user search results when results are actually found */
+    #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsHeader {
+      font-weight: bold;
+      padding: 2px; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsHeader span.xcUserJID {
+        width: 300px;
+        float: left; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsHeader span.xcUserSelect {
+        width: 100px; }
+    #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsData {
+      font-weight: bold;
+      padding: 2px; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsData span.xcUserJID {
+        width: 300px;
+        float: left; }
+      #xcAddUser #xcWrapper .xcPopup #xcUserSearchDiv #xcUserSearchResultsData span.xcUserSelect {
+        width: 300px; }
+
+/* ARCHIVE CSS */
+#xcArchive {}
+  #xcArchive #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcArchive .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcArchive .xcFieldWrapper.hidden {
+      display: none; }
+    #xcArchive .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 175px; }
+    #xcArchive .xcFieldWrapper.text_field input {
+      width: 200px; }
+  #xcArchive .xcChatList {
+    border: 1px solid black;
+    width: 200px;
+    height: 150px;
+    background-color: #ffffff;
+    padding: 2px;
+    overflow: auto; }
+    #xcArchive .xcChatList .xcChatItem {
+      padding: 2px; }
+    #xcArchive .xcChatList .xcChatItem.selected {
+      background-color: #cccccc; }
+  #xcArchive .xcConversationList {
+    display: none;
+    border: 1px solid black;
+    width: 400px;
+    height: 150px;
+    padding: 2px;
+    overflow: auto; }
+    #xcArchive .xcConversationList .xcConversationItem {
+      padding: 2px; }
+      #xcArchive .xcConversationList .xcConversationItem label {
+        float: left;
+        padding: 1px; }
+      #xcArchive .xcConversationList .xcConversationItem label.received {
+        color: #ff0000; }
+      #xcArchive .xcConversationList .xcConversationItem label.sent {
+        color: #0000ff; }
+      #xcArchive .xcConversationList .xcConversationItem span {
+        width: 250px;
+        color: #000000;
+        padding: 1px; }
+
+/* BOOKMARKS */
+#xcAddBookmark {}
+  #xcAddBookmark #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcAddBookmark .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcAddBookmark .xcFieldWrapper.select label,
+    #xcAddBookmark .xcFieldWrapper.text_field label {
+      float:left;
+      line-height: 20px;
+      width: 125px; }
+    #xcAddBookmark .xcFieldWrapper input {}
+    #xcAddBookmark .xcFieldWrapper.select select {
+      width: 100px; }
+    #xcAddBookmark .xcFieldWrapper.text_field input {
+      width: 200px; }
+
+/* MUC INVITE PAGE */
+#xcMUCInvite {}
+  #xcMUCInvite #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcMUCInvite .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcMUCInvite .xcFieldWrapper label {
+      float: left;
+      width: 125px;
+      font-weight: bold; }
+    #xcMUCInvite .xcFieldWrapper span {
+      width: 200px;
+      font-weight: normal; }
+
+/* MUC DECLINE PAGE */
+#xcMUCDecline {}
+  #xcMUCDecline #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcMUCDecline .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcMUCDecline .xcFieldWrapper label {
+      float: left;
+      width: 125px;
+      font-weight: bold; }
+    #xcMUCDecline .xcFieldWrapper span {
+      width: 200px;
+      font-weight: normal; }
+
+/* PRESENCE OTHER PAGE */
+#xcPresenceOther {}
+  #xcPresenceOther #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcPresenceOther .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcPresenceOther .xcFieldWrapper.select label,
+    #xcPresenceOther .xcFieldWrapper.text_field label {
+      float:left;
+      line-height: 20px;
+      width: 125px; }
+    #xcPresenceOther .xcFieldWrapper input {}
+    #xcPresenceOther .xcFieldWrapper.select select {
+      width: 100px; }
+    #xcPresenceOther .xcFieldWrapper.text_field input {
+      width: 200px; }
+
+
+/* SUBSCRIPTION PAGE */
+#xcSubscription {}
+  #xcSubscription #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcSubscription .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcSubscription .xcFieldWrapper.select label,
+    #xcSubscription .xcFieldWrapper.text_field label {
+      float:left;
+      line-height: 20px;
+      width: 125px; }
+    #xcSubscription .xcFieldWrapper input {}
+    #xcSubscription .xcFieldWrapper.select select {
+      width: 208px; }
+    #xcSubscription .xcFieldWrapper.text_field input {
+      width: 200px; }
+
+/* UNSUBSCRIPTION PAGE */
+#xcUnsubscribe {}
+  #xcUnsubscribe #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcUnsubscribe .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcSubscription .xcFieldWrapper.text_field label {
+      float:left;
+      line-height: 20px;
+      width: 125px; }
+    #xcSubscription .xcFieldWrapper input {}
+    #xcSubscription .xcFieldWrapper.text_field input {
+      width: 200px; }
+
+/* TRANSLATE WINDOW */
+#xcTranslate {}
+  #xcTranslate #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcTranslate .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcTranslate .xcFieldWrapper.select label,
+    #xcTranslate .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 125px; }
+    #xcTranslate .xcFieldWrapper input {}
+    #xcTranslate .xcFieldWrapper.select select {
+      width: 208px; }
+    #xcTranslate .xcFieldWrapper.text_field input {
+      width: 200px; }
+    #xcTranslate .xcFieldWrapper.checkbox label {}
+    #xcTranslate .xcFieldWrapper.checkbox input {}
+
+/* UPDATE USER DETAILS */
+#xcUpdateUser {}
+  #xcUpdateUser #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcUpdateUser .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcUpdateUser .xcFieldWrapper .xcToggleNewGroup {
+      margin-left: 5px;
+      font-size: 9px; }
+    #xcUpdateUser .xcFieldWrapper.select label,
+    #xcUpdateUser .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 125px; }
+    #xcUpdateUser .xcFieldWrapper input {}
+    #xcUpdateUser .xcFieldWrapper.select select {
+      width: 208px; }
+    #xcUpdateUser .xcFieldWrapper.text_field input {
+      width: 200px; }
+    #xcUpdateUser .xcFieldWrapper.checkbox label {}
+    #xcUpdateUser .xcFieldWrapper.checkbox input {}
+
+/* USER DETAILS */
+#xcUserDetails {}
+  #xcUserDetails #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcUserDetails .xcUserDetails {
+    padding: 0px 2px 2px 2px;
+    overflow: auto;
+    height: 300px;
+    background-color: #ffffff;
+    font-weight: bold; }
+
+  #xcUserDetails .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcUserDetails .xcFieldWrapper label {
+      float: left;
+      width: 125px; }
+    #xcUserDetails .xcFieldWrapper span {
+      width: 200px;
+      font-weight: normal; }
+
+/* VCARD */
+#xcVCard {}
+  #xcVCard #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+  #xcVCard .xcFieldWrapper {
+    margin-bottom: 5px; }
+    #xcVCard .xcFieldWrapper .xcToggleNewGroup {
+      margin-left: 5px;
+      font-size: 9px; }
+    #xcVCard .xcFieldWrapper.select label,
+    #xcVCard .xcFieldWrapper.textarea label,
+    #xcVCard .xcFieldWrapper.text_field label {
+      float: left;
+      line-height: 20px;
+      width: 125px; }
+    #xcVCard .xcFieldWrapper input {}
+    #xcVCard .xcFieldWrapper.select select {
+      width: 208px; }
+    #xcVCard .xcFieldWrapper.text_field input {
+      width: 200px; }
+    #xcVCard .xcFieldWrapper.checkbox label {}
+    #xcVCard .xcFieldWrapper.checkbox input {}
+    #xcVCard .xcFieldWrapper.textarea {
+      vertical-align: top; }
+      #xcVCard .xcFieldWrapper.textarea textarea {
+        width: 200px;
+        height: 75px; }
+
+/* HELP */
+#xcHelp {}
+  #xcHelp #xcHeader {
+    padding: 12px 10px 8px 10px; }
+
+/* Still being utilized currently */
+.xcUserSearchTable {
+  border: 1px solid black;
+  width: 100%;
+}
+
+.xcUserSearchSelect {
+  cursor: pointer;
+}
+

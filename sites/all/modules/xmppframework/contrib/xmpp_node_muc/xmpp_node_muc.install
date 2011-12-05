@@ -1,0 +1,89 @@
+<?php
+// $Id: xmpp_node_muc.install,v
+
+/**
+ * Implementation of hook_enable().
+ */
+function xmpp_node_muc_enable() {
+  drupal_set_message(t('XMPP Node Muc module successfully installed. Please review the <a href="@settings">configuration settings</a>.', array('@settings' => url('admin/xmppframework/node_muc'))));
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function xmpp_node_muc_install() {
+  // creating the xmpp_node_muc schema
+  drupal_install_schema('xmpp_node_muc');
+  // adding the gid initial value
+  db_query("INSERT INTO {xmpp_node_muc_gid} (gid) VALUES(%d)", 0);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmpp_node_muc_uninstall() {
+  // un-installing the xmpp_node_muc schema
+  drupal_uninstall_schema('xmpp_node_muc');
+  // removing any variables the module used
+  variable_del('xmpp_node_muc_server');
+  variable_del('xmpp_node_muc_service');
+  variable_del('xmpp_node_muc_types_temporary');
+  variable_del('xmpp_node_muc_types_permanent');
+  variable_del('xmpp_node_muc_block_muc_log_amount');
+  variable_del('xmpp_node_muc_block_refresh');
+  variable_del('xmpp_node_muc_block_refresh_interval');
+  variable_del('xmpp_node_muc_xmlrpc_debug');
+}
+
+/**
+ * Implementation of hook_schema()
+ */
+function xmpp_node_muc_schema() {
+  return array(
+    'xmpp_node_muc_gid' => array(
+      'description' => t('Table holds the sequence for the next gid'),
+      'fields' => array(
+        'gid' => array('type' => 'int', 'not null' => TRUE, 'length' => 11),
+      ),
+      'primary key' => array('gid'),
+    ),
+    'xmpp_node_muc_groups' => array(
+      'description' => t('Table holds the information pertaining to the muc associated with the node'),
+      'fields' => array(
+        'gid' => array('type' => 'int', 'lenght' => 11, 'not null' => TRUE),
+        'nid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+        'title' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 512),
+        'sub_group' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'size' => 'tiny'),
+        'subject' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 1024),
+        'name' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 255),
+      ),
+      'primary key' => array('gid'),
+      'indexes' => array('nid' => array('nid')),
+    ),
+    'xmpp_node_muc_users' => array(
+      'description' => t('Table holds all of the users currently in the muc'),
+      'fields' => array(
+        'gid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+        'nid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+        'uid' => array('type' => 'int', 'not null' => FALSE),
+        'jid' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 255),
+        'nickname' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 255),
+        'join_time' => array('type' => 'int', 'not null' => TRUE),
+      ),
+      'primary key' => array('gid', 'nid', 'jid'),
+    ),
+    'xmpp_node_muc_log' => array(
+      'description' => t('Table holds all messages that were sent to the muc'),
+      'fields' => array(
+        'gid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+        'nid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+        'nickname' => array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 255),
+        'mdate' => array('type' => 'int', 'not null' => TRUE),
+        'subject' => array('type' => 'varchar', 'not null' => FALSE, 'length' => 1024),
+        'body' => array('type' => 'varchar', 'not null' => FALSE, 'length' => 1024),
+      ),
+      'primary key' => array('gid', 'nid', 'nickname', 'mdate'),
+    ),
+  );
+}
+

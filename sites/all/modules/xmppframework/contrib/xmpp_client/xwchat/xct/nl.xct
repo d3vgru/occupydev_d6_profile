@@ -1,0 +1,22 @@
+/**
+ * Translation for XMPP Thin Client
+ * English to Dutch
+ */
+
+XC.localizedString = {
+  "Arabic" : "Arabisch",
+  "Chinese" : "Chinees",
+  "Dutch" : "Hollands",
+  "English" : "Engels",
+  "Finnish" : "Fins",
+  "French" : "Frans",
+  "German" : "Duits",
+  "Hungarian" : "Hongaars",
+  "Italian" : "Italiaans",
+  "Korean" : "Koreaans",
+  "Lithuanian" : "Litouws",
+  "Romanian" : "Roemeens",
+  "Russian" : "Russisch",
+  "Spanish" : "Spaans",
+  "Turkish" : "Turks"
+};

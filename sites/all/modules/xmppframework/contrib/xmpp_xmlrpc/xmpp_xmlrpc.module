@@ -1,0 +1,91 @@
+<?php
+// $Id: xmpp_xmlrpc.module,v 1.1.2.2.2.15 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * Implementation of hook_xmpp()
+ *
+ * @param $op
+ *      The operation that is being requested
+ */
+function xmpp_xmlrpc_xmpp($op = 'info') {
+  switch ($op) {
+    case 'info':
+      $info['xmpp_xmlrpc'] = array(
+        'name'        => t('XMLRPC API'),
+        'operation'   => 'xmpp_xmlrpc_operation',
+        'description' => t('Utilize xmlrpc api to XMPP server'),
+      );
+      return $info;
+  }
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_xmlrpc_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_xmlrpc');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides the xmlrpc url for use by other modules');
+      break;
+    case 'admin/help#xmpp_xmlrpc':
+      $output = '<p>'. t('The xmpp_xmlrpc module provides an xmlrpc url for use by other modules') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_xmlrpc_perm() {
+  return array('administer xmpp xmlrpc');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_xmlrpc_menu() {
+  $items['admin/xmppframework/xmlrpc'] = array(
+    'title' => 'XMLRPC Settings',
+    'description' => 'Configure the xmpp xmlrpc module settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_xmlrpc_admin_settings'),
+    'access arguments' => array('administer xmpp xmlrpc'),
+    'file' => 'xmpp_xmlrpc.admin.inc'
+  );
+  return $items;
+}
+
+/**
+ * Operation function
+ *
+ * @param $op
+ *      Operation we wish to perform
+ */
+function xmpp_xmlrpc_operation($op) {
+  module_load_include('inc', 'xmpp_xmlrpc', 'xmpp_xmlrpc.internal');
+  $funcs = array(
+    'set_presence' => 'xmpp_xmlrpc_set_presence',
+    'send_message' => 'xmpp_xmlrpc_send_message',
+    'delete_account' => 'xmpp_xmlrpc_delete_account',
+    'create_muc' => 'xmpp_xmlrpc_create_muc',
+    'configure_muc' => 'xmpp_xmlrpc_configure_muc',
+    'delete_muc' => 'xmpp_xmlrpc_delete_muc',
+    'add_rosteritem' => 'xmpp_xmlrpc_add_rosteritem',
+    'delete_rosteritem' => 'xmpp_xmlrpc_delete_rosteritem',
+    'get_vcard' => 'xmpp_xmlrpc_get_vcard',
+    'set_vcard' => 'xmpp_xmlrpc_set_vcard',
+    'get_roster' => 'xmpp_xmlrpc_get_roster',
+    'get_user_resources' => 'xmpp_xmlrpc_get_user_resources',
+    'set_user_muc_affiliation' => 'xmpp_xmlrpc_set_user_muc_affiliation',
+    'get_server_connection' => 'xmpp_xmlrpc_get_connection',
+    'get_user_connection' => 'xmpp_xmlrpc_get_connection',
+    'get_admin_connection' => 'xmpp_xmlrpc_get_connection',
+    'release_connection' => 'xmpp_xmlrpc_release_connection',
+  );
+  return $funcs[$op];
+}

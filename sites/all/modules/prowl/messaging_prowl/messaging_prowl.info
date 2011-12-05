@@ -1,0 +1,14 @@
+; $Id: 
+name = Prowl Messaging
+description = Sending Method: Prowl
+package = "Messaging"
+dependencies[] = messaging
+dependencies[] = prowl_user
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-10-05
+version = "6.x-2.0"
+core = "6.x"
+project = "prowl"
+datestamp = "1317841007"
+

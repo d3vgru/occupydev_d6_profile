@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Bookmarks</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/jsextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="bookmarks.js"></script>
+  <style type="text/css">
+    input[type="text"] {
+      width: 350px;
+    };
+  </style>
+</head>
+<body id="xcAddBookmark">
+  <div id="xcChat">
+
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+        <h1>
+         <script type="text/javascript">
+           document.write(pWin.xcT('Bookmarks'));
+         </script>
+        </h1>
+        <a href="#" onclick="window.close()" class="close right">Close</a>
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcContent">
+        <form id="bookmarks" name="bookmarks" onSubmit="xcBookmarksUpdate(this.jid.value, this.server.value, this.name.value, this.nick.value, this.autojoin.value, this.cmd.value);" action="javascript:;">
+        <script type="text/javascript">
+          var str = '<div class="xcFieldWrapper text_field">' +
+                    '<label for="jid" id="jid_lbl" class="xcLabel" title="' + pWin.xcT('Room on the server you wish to bookmark') + '">' + pWin.xcT('Room') + '</label>' +
+                    '<input type="text" id="jid" name="jid" value="" class="xcInput" />' +
+                    '</div>' +
+                    '<div class="xcFieldWrapper text_field">' +
+                    '<label for="server" id="server_lbl" class="xcLabel" title="' + pWin.xcT('Server the room is located on') + '">' + pWin.xcT('Server') + '</label>' +
+                    '<input type="text" id="server" name="server" value="" class="xcInput" />' +
+                    '</div>' +
+                    '<div class="xcFieldWrapper text_field">' +
+                    '<label for="name" id="name_lbl" class="xcLabel" title="' + pWin.xcT('Alias that you will see in your roster') + '">' + pWin.xcT('Name') + '</label>' +
+                    '<input type="text" id="name" name="name" value="" class="xcInput" />' +
+                    '</div>' +
+                    '<div class="xcFieldWrapper text_field">' +
+                    '<label for="nick" id="nick_lbl" class="xcLabel" title="' + pWin.xcT('Your nickname when you enter the room') + '">' + pWin.xcT('NickName') + '</label>' +
+                    '<input type="text" id="nick" name="nick" value="" class="xcInput" />' +
+                    '</div>' +
+                    '<div class="xcFieldWrapper select">' +
+                    '<label for="autojoin" id="autojoin_lbl" class="xcLabel" title="' + pWin.xcT('Start bookmark when you login via the client') + '">' + pWin.xcT('Autojoin') + '</label>' +
+                    '<div id="autojoin_holder">' +
+                    '<select name="autojoin" id="autojoin" size="1" class="xcSelect">' +
+                    '<option value="false" selected>' + pWin.xcT('No') + '</option>' +
+                    '<option value="true">' + pWin.xcT('Yes') + '</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="xcFieldWrapper button xcSubmit">' +
+                    '<input type="submit" name="addbutton" id="addbutton" value="' + pWin.xcT('Update') + '" class="xcButton" />' +
+                    '<input type="hidden" name="cmd" id="cmd" value="add" />' +
+                    '</div>';
+          document.write(str);
+        </script>
+        </form>
+      </div>
+      <div id="msg" class="xcMessage"></div>
+    </div>
+
+    <div id="xcFooterContainer">
+      <div id="xcFooter">
+
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

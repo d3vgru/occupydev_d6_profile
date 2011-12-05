@@ -1,0 +1,235 @@
+/**
+ * @file
+ * Layout Styling (DIV Positioning)
+ *
+ * Define CSS classes to create a table-free, 3-column, 2-column, or single
+ * column layout depending on whether blocks are enabled in the left or right
+ * columns.
+ *
+ * This layout is based on the Zen Columns layout method.
+ *   http://drupal.org/node/201428
+ *
+ * Only CSS that affects the layout (positioning) of major elements should be
+ * listed here.  Such as:
+ *   display, position, float, clear, width, height, min-width, min-height
+ *   margin, border, padding, overflow
+ */
+
+
+/*
+ * Body
+ */
+body {
+}
+
+#page-wrapper,
+.region-page-closure {
+  min-width: 960px; /* Don't allow the browser to make the site unreadable. */
+}
+
+#page {
+}
+
+#navigation .section,
+#featured .section {
+  padding: 0 10px;
+}
+
+/*
+ * Header
+ */
+#header {
+  min-height: 92px;
+}
+
+#header .section {
+  position: relative;
+}
+
+#search-box {
+}
+
+.region-header {
+  float: right; /* LTR */
+  margin: 10px;
+}
+
+/*
+ * Featured
+ */
+#featured {
+}
+
+#featured .section {
+}
+
+/*
+ * Main (container for everything else)
+ */
+#main-wrapper {
+  position: relative;
+  padding-top: 10px;
+}
+
+#main {
+}
+
+/*
+ * Content
+ */
+#content {
+  float: left; /* LTR */
+  width: 100%;
+  margin-left: 0; /* LTR */
+  margin-right: -100%; /* LTR */ /* Negative value of #content's width + left margin. */
+  padding: 0; /* DO NOT CHANGE. Add padding or margin to #content .section. */
+}
+
+#content .section,
+.no-sidebars #content .section {
+  margin: 0 10px;
+  padding: 0;
+}
+
+.sidebar-first #content .section {
+  padding-left: 240px; /* LTR */ /* The width + left margin of .region-sidebar-first. */
+  padding-right: 0; /* LTR */
+}
+
+.sidebar-second #content .section {
+  padding-left: 0; /* LTR */
+  padding-right: 240px; /* LTR */ /* The width + right margin of .region-sidebar-second. */
+}
+
+.two-sidebars #content .section {
+  padding-left: 240px; /* The width + left margin of .region-sidebar-first. */
+  padding-right: 240px; /* The width + right margin of .region-sidebar-second. */
+}
+
+/*
+ * Navigation
+ */
+#navigation {
+  clear: both;
+  float: left; /* LTR */
+  margin-bottom: 15px;
+  margin-top: 10px;
+  padding: 0;
+  width: 100%;
+}
+
+#navigation .section {
+}
+
+/*
+ * First sidebar
+ */
+.region-sidebar-first {
+  float: left; /* LTR */
+  width: 240px;
+  margin-left: 0; /* LTR */
+  margin-right: -240px; /* LTR */ /* Negative value of .region-sidebar-first's width + left margin. */
+  padding: 0; /* DO NOT CHANGE. Add padding or margin to .region-sidebar-first .section. */
+}
+
+.region-sidebar-first .section {
+  margin: 0 10px;
+  padding: 0;
+}
+
+.region-sidebar-first .block .content {
+  padding: 0 .5em;
+}
+
+/*
+ * Second sidebar
+ */
+.region-sidebar-second {
+  float: right; /* LTR */
+  width: 240px;
+  margin-left: -240px; /* LTR */ /* Negative value of .region-sidebar-second's width + right margin. */
+  margin-right: 0; /* LTR */
+  padding: 0; /* DO NOT CHANGE. Add padding or margin to .region-sidebar-second .section. */
+}
+
+.region-sidebar-second .section {
+  margin: 0 10px;
+  padding: 0;
+}
+
+.region-sidebar-second .block .content {
+  padding: 0 .5em;
+}
+
+/*
+ * Triptych
+ */
+#triptych {
+  margin-top: 10px;
+  padding: 10px 0;
+}
+
+#triptych .section {
+  margin: 10px;
+}
+
+#triptych .region-triptych-first,
+#triptych .region-triptych-middle,
+#triptych .region-triptych-last {
+  width: 33.3%;
+  float: left; /* LTR */
+}
+
+/*
+ * Footer
+ */
+#footer {
+}
+
+#footer .section {
+  margin: 10px;
+}
+
+#footer-columns .region-footer-firstcolumn,
+#footer-columns .region-footer-secondcolumn,
+#footer-columns .region-footer-thirdcolumn,
+#footer-columns .region-footer-fourthcolumn {
+  width: 25%;
+  float: left; /* LTR */
+}
+
+/*
+ * Closure
+ */
+.region-page-closure /* See also the #page-wrapper declaration above that this div shares. */ {
+}
+
+/*
+ * Prevent overflowing content
+ */
+#header,
+#content,
+#navigation,
+.region-sidebar-first,
+.region-sidebar-second,
+#footer,
+.region-page-closure {
+  overflow: visible;
+  word-wrap: break-word; /* A very nice CSS3 property */
+}
+
+#navigation {
+  overflow: hidden; /* May need to be removed if using a dynamic drop-down menu */
+}
+
+/*
+ * If a div.clearfix doesn't have any content after it and its bottom edge
+ * touches the bottom of the viewport, Firefox and Safari will mistakenly
+ * place several pixels worth of space between the bottom of the div and the
+ * bottom of the viewport. Uncomment this CSS property to fix this.
+ * Note: with some over-large content, this property might cause scrollbars
+ * to appear on the #page-wrapper div.
+ */
+#page-wrapper {
+  overflow-y: hidden;
+}

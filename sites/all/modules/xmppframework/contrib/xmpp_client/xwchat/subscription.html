@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Subscription Request</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    var from = '', contact = {};
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+    /**
+     * Set message information and then activate timeout to clear it
+     * @param {String} msg The message to set
+     * @action sets the message and calls the timeout to clear it
+     */
+    function xcSetMsg(msg, error) {
+      if (JQ('div#msg').children().size() > pWin.XC.LOGSIZE) {
+        JQ('div#msg').children(':first-child').remove();
+      }
+      if (error) {
+        JQ('#msg').addClass('xcError').append('<div>' + msg + '</div>').show();
+      } else {
+        JQ('#msg').removeClass('xcError').append('<div>' + msg + '</div>').show();
+      }
+    };
+
+    /**
+     * Toggling between showing the select and the new group portion
+     */
+    function xcToggleNewGroup() {
+      JQ('#xcNewGroup').toggle();
+      JQ('#xcChooseGroup').toggle();
+    }
+
+    /**
+     * Disables the buttons so they cannot be pressed
+     */
+    function xcDisableActionButtons() {
+      JQ('#accept_button').attr('disabled', 'true');
+      JQ('#decline_button').attr('disabled', 'true');
+    }
+
+    /**
+     * Accepting the subscription offer from the person
+     */
+    function xcAcceptSubscription(name, other) {
+      if (typeof(name) == 'undefined' || name == '') {
+        name = from.split('@')[0]; // takes the portion before the @ as the name for the person
+      };
+      var group = new Array();
+      if (typeof(other) != 'undefined' && other != '') { group.push(other); };
+      JQ('#group option:selected').each(function() { group.push(JQ(this).attr('value')); });
+      if (group.length == 0) {
+        xcSetMsg(pWin.xcT('You must select a group for your new associate'), true);
+        return false;
+      };
+      pWin.xcSubscribed(from, name, group, true);
+      pWin.xcSendPresenceType(from, 'subscribe'); // sending our own subscribe presence packet
+      window.close();
+    }
+    /**
+     * Declining the subscription offer from the person
+     */
+    function xcDeclineSubscription() {
+      pWin.xcUnsubscribed(from);
+      window.close();
+    }
+    // creating the groups on the fly
+    var groups = '<select name="group" multiple id="group" size="3" class="xcSelect">';
+    for (var x = 0;x < pWin.grouplist.length; x++) {
+      groups += '<option value="' + pWin.grouplist[x] + '">' + pWin.grouplist[x] + '</option>';
+    }
+    groups += '</select>';
+    groups += '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('New group') + '</a>';
+
+    JQ(document).ready(function() {
+      if (!(from = JQ(document).getUrlParam('from'))) {
+        xcDisableActionButtons();
+        xcSetMsg(pWin.xcT('Could not retrieve the Chat ID for the user'), true);
+        setTimeout('window.close()', pWin.XC['ERRORTIMEOUT']);
+        return false;
+      };
+      JQ('#jid').val(from);
+      JQ('#group_holder').html(groups);
+      // Adding click handler for the message div
+      JQ('div#msg').click(function() {
+        JQ(this).removeClass('xcError').html('').show();
+      });
+    });
+
+    JQ(window).unload(function(){
+      try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcSubscription">
+   <div id="xcChat">
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Subscription Request'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="subscription_form" name="subscription_form">
+           <script type="text/javascript">
+              var str = '<div class="xcFieldWrapper text_field">' +
+                        '<label for="jid" id="jid_lbl" class="xcLabel" title="' + pWin.xcT('JID of the person the request is from') + '">' + pWin.xcT('From') + '</label>' +
+                        '<input type="text" id="jid" name="jid" value="" disabled />' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper text_field">' +
+                        '<label for="name" id="name_lbl" class="xcLabel" title="' + pWin.xcT('Name you wish to assign to the associate') + '">' + pWin.xcT('Name') + ':</label>' +
+                        '<input type="text" id="name" value="" class="xcInput" />' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper select" id="xcChooseGroup">' +
+                        '<label for="group" id="group_lbl" class="xcLabel" title="' + pWin.xcT('Group / Groups you wish put your associate in') + '">' + pWin.xcT('Group') + ':</label>' +
+                        '<div id="group_holder"></div>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper text_field" id="xcNewGroup" style="display:none">' +
+                        '<label for="other" id="other_lbl" class="xcLabel" title="' + pWin.xcT('Put associate in group that does not already exist') + '">' + pWin.xcT('New group') + ':</label>' +
+                        '<input type="text" id="other" value="" class="xcInput" />' +
+                        '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('Cancel') + '</a>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper button xcSubmit">' +
+                        '<input type="button" id="accept_button" value="' + pWin.xcT('Accept') + '" class="xcButton" onClick="xcAcceptSubscription(this.form.name.value, this.form.other.value);" />' +
+                        '<input type="button" id="decline_button" value="' + pWin.xcT('Decline') + '" class="xcButton" onClick="xcDeclineSubscription();" />' +
+                        '</div>';
+              document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+
+   </div>
+ </body>
+</html>

@@ -1,0 +1,14 @@
+; $id:
+name = XMPP NOTIFICATIONS
+description = Send notifications regarding xmpp events
+package = "Notifications"
+dependencies[] = notifications
+dependencies[] = xmpp_user
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

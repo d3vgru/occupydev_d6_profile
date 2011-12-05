@@ -1,0 +1,13 @@
+; $Id:
+name = Prowl User Integration
+description = This module allows users to associate a Prowl API key with their account.
+core = 6.x
+dependencies[] = token
+dependencies[] = prowl
+
+; Information added by drupal.org packaging script on 2011-10-05
+version = "6.x-2.0"
+core = "6.x"
+project = "prowl"
+datestamp = "1317841007"
+

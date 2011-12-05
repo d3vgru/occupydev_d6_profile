@@ -1,0 +1,112 @@
+/**
+ * @file
+ * RTL companion for the candy.css file.
+ */
+
+
+/*
+ * Lists
+ *
+ * We need to standardize the list item indentation.
+ */
+ul,
+ol {
+  padding-left: 0;
+  padding-right: 2em;
+}
+
+.block ul,
+.item-list ul /* Drupal overrides */ {
+  padding: 0 2em 0 0;
+}
+
+.item-list ul li {
+  margin: 0 .5em .25em 0;
+}
+
+ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-rtl.png);
+}
+
+dd {
+  margin: 0 2em 0 0;
+}
+
+/**
+ * Special image mapping
+ */
+ul.links li.blog_usernames_blog {
+  background: url(../images/user.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.book_add_child {
+  background: url(../images/report-add.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.comment_comments,
+ul.links li.comment_forbidden {
+  background: url(../images/comment.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.comment_add,
+ul.links li.comment_new_comments,
+ul.links li.comment_reply {
+  background: url(../images/comment-add.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.comment_delete {
+  background: url(../images/comment-delete.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.comment_edit {
+  background: url(../images/comment-edit.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.node_read_more {
+  background: url(../images/article.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.upload_attachments {
+  background: url(../images/briefcase.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.statistics_counter {
+  background: url(../images/graph-bar.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.book_printer,
+ul.links li.print_html {
+  background: url(../images/printer.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.print_mail {
+  background: url(../images/mail-closed-send.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+ul.links li.print_pdf {
+  background: url(../images/file-pdf.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}

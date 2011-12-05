@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>VCard</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="vcard.js"></script>
+ </head>
+ <body id="xcVCard">
+   <div id="xcChat">
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Update VCard'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form name="vcard_form">
+           <script type="text/javascript">
+             var str = '<fieldset>' +
+                       '<legend>' + pWin.xcT('Personal Information') + '</legend>' +
+                       '<div class="xcFieldWrapper text_field">'+
+                       '<label for="FN" id="FN_lbl" class="xcLabel">' + pWin.xcT('Full Name') + ':</label>' +
+                       '<input type="text" name="FN" id="FN" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="FAMILY" id="FAMILY_lbl" class="xcLabel">' + pWin.xcT('Family Name') + ':</label>' +
+                       '<input type="text" name="NDOTDOTFAMILY" id="NDOTDOTFAMILY" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="GIVEN" id="GIVEN_lbl" class="xcLabel">' + pWin.xcT('Given Name') + ':</label>' +
+                       '<input type="text" name="NDOTDOTGIVEN" id="NDOTDOTGIVEN" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="MIDDLE" id="MIDDLE_lbl" class="xcLabel">' + pWin.xcT('Middle Name') + ':</label>' +
+                       '<input type="text" name="NDOTDOTMIDDLE" id="NDOTDOTMIDDLE" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="NICKNAME" id="NICKNAME_lbl" class="xcLabel">' + pWin.xcT('Nick Name') + ':</label>' +
+                       '<input type="text" name="NICKNAME" id="NICKNAME" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="BDAY" id="BDAY_lbl" class="xcLabel">' + pWin.xcT('Birthday') + ':</label>' +
+                       '<input type="text" name="BDAY" id="BDAY" class="xcInput" />' +
+                       '</div>' +
+                       '</fieldset>' +
+                       '<fieldset>' +
+                       '<legend>' + pWin.xcT('Organization') + '</legend>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="ORGNAME" id="ORGNAME_lbl" class="xcLabel">' + pWin.xcT('Organization Name') + ':</label>' +
+                       '<input type="text" name="ORGDOTDOTORGNAME" id="ORGDOTDOTORGNAME" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="ORGUNIT" id="ORGUNIT_lbl" class="xcLabel">' + pWin.xcT('Organization Unit') + ':</label>' +
+                       '<input type="text" name="ORGDOTDOTORGUNIT" id="ORGDOTDOTORGUNIT" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="TITLE" id="TITLE_lbl" class="xcLabel">' + pWin.xcT('Title') + ':</label>' +
+                       '<input type="text" name="TITLE" id="TITLE" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="ROLE" id="ROLE_lbl" class="xcLabel">' + pWin.xcT('Role') + ':</label>' +
+                       '<input type="text" name="ROLE" id="ROLE" class="xcInput" />' +
+                       '</div>' +
+                       '</fieldset>' +
+                       '<fieldset>' +
+                       '<legend>' + pWin.xcT('Extra Information') + '</legend>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="LOCALITY" id="LOCALITY_lbl" class="xcLabel">' + pWin.xcT('City') + ':</label>' +
+                       '<input type="text" name="ADRDOTDOTLOCALITY" id="ADRDOTDOTLOCALITY" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="COUNTRY" id="COUNTRY_lbl" class="xcLabel">' + pWin.xcT('Country') + ':</label>' +
+                       '<input type="text" name="ADRDOTDOTCTRY" id="ADRDOTDOTCTRY" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="JABBERID" id="JABBERID_lbl" class="xcLabel">' + pWin.xcT('Jabber ID') + ':</label>' +
+                       '<input type="text" name="JABBERID" id="JABBERID" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="EMAIL" id="EMAIL_lbl" class="xcLabel">' + pWin.xcT('Email') + ':</label>' +
+                       '<input type="text" name="EMAIL" id="EMAIL" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="URL" id="URL_lbl" class="xcLabel">' + pWin.xcT('Home Page') + ':</label>' +
+                       '<input type="text" name="URL" id="URL" class="xcInput" />' +
+                       '<div class="xcFieldWrapper textarea">' +
+                       '<label for="DESC" id="DESC_lbl" class="xcLabel">' + pWin.xcT('Description') + ':</label>' +
+                       '<textarea id="DESC" name="DESC"></textarea>' +
+                       '</div>' +
+                       '</fieldset>' +
+                       '<div class="xcFieldWrapper button xcSubmit">' +
+                       '<input type="button" id="save_button" name="save_button" value="' + pWin.xcT('Save') + '" class="xcButton" onClick="xcVCardSend();" />' +
+                       '</div>';
+             document.write(str);
+           </script>
+         </form>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+   <div id="msg" class="xcMessage"></div>
+ </body>
+</html>

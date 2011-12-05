@@ -1,0 +1,39 @@
+// Roster.html
+Available -
+Away -
+Chat -
+Do Not Disturb -
+Extended Away -
+Invisible -
+Help -
+Preferences -
+Add Associate -
+Group Chat -
+Chat Log
+Chat
+Info
+Last Activity -
+Get Presence -
+Set Presence -
+Remove -
+Resubscribe -
+Update -
+
+// AddUser.html
+Add New Associate -
+Add Associate -
+Chat ID -
+Search -
+Name -
+Group -
+Other -
+General -
+
+// Help.html
+XMPP Client Help -
+Chat Client is written completely in Javascript to allow deployment using any web server. -
+Chat Client utilizes the <a href="http://zeank.in-berlin.de/jsjac/" target="_new">JSJaC</a> client library written by Stefan Striger.
+Chat Client utilizes the <a href="http://jquery.com" target="_new">JQuery</a> Javascript library to make client side coding much easier.
+Author: Darren Ferguson darren.ferguson@openband.net
+Close
+

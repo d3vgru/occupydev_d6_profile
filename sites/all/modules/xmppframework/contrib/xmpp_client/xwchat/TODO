@@ -1,0 +1,104 @@
+// This is the XEP's that still wish to implement
+
+RFC3921
+  Implemented:
+   - 7.3 Retrieving One's Roster on Login
+   - 7.4 Adding a Roster Item
+   - 7.5 Updating a Roster Item
+   - 7.6 Deleting a Roster Item
+
+XEP-0004 Data Forms
+  Implemented
+
+XEP-0012 Last Acitivty
+  Implemented
+
+XEP-0013 Flexible Offline Message Retrieval
+  Still to do
+
+XEP-0016 Privacy Lists
+  Implemented the pieces we need for the client
+
+XEP-0030 Service Discovery
+  Verify we have this done correctly: when implementing another XEP i.e. PING, Privacy lists etc
+  you should make the request to the server to determine if it is supported or not or we can make a
+  request at the begining and then have a function set a particular variable to determine if it is available
+  would save on overhead and hence we can know what the server supports, implementing new XEP etc just add the
+  variables we would need and the appropriate checks that are needed.
+
+XEP-0045 Multi-User Chat
+  Still to do:
+   - 7.10 Registering with a Room
+
+XEP-0049 Private Data Storage
+  Implemented
+
+XEP-0054 VCard Temp
+  Implemented
+
+XEP-0055 Jabber Search
+  Implemented
+
+XEP-0086 Error Condition Mappings
+  Implemented
+
+XEP-0091 Delayed Delivery (Depreciated but still used by clients so support added)
+  Implemented
+
+XEP-0092 Software Version
+  Implemented
+
+XEP-0126 Invisibility
+  Still to do
+
+XEP-0136 Message Archiving
+ Implemented:
+   - 8. Archive Management
+     - 8.1 Retrieving a List of Collections
+     - 8.2 Retrieving a Collection
+     - 8.3 Removing a Collection
+  - 7. Automated Archiving
+    - 7.1 Toggling Auto-Archiving
+    - 7.2 Enabling Auto-Archiving with Encryption
+    - 7.3 Not-Implemented Responses
+
+ Still To Do:
+   - 3. Archiving Preferences
+     - 3.1. Introduction
+     - 3.2. Preference Syntax
+       - 3.2.1. Auto Element
+       - 3.2.2. Default Element
+         - 3.2.2.1. expire Attribute
+         - 3.2.2.2. otr Attribute
+         - 3.2.2.3. save Attribute
+       - 3.2.3. Item Element
+         - 3.2.3.1. expire Attribute
+         - 3.2.3.2. jid Attribute
+         - 3.2.3.3. otr Attribute
+         - 3.2.3.4. save Attribute
+       - 3.2.4. Method Element
+         - 3.2.4.1. type Attribute
+         - 3.2.4.2. use Attribute
+    - 3.3. Determining Preferences
+    - 3.4. Setting Default Modes
+    - 3.5. Setting Modes for a Contact
+    - 3.6. Setting Archiving Method Preferences
+  - 4. Off The Record
+    - 4.1. OTR Negotiation
+    - 4.2. Notes
+  - 5. Manual Archiving
+    - 5.1. Introduction
+    - 5.2. Collections
+    - 5.3. Uploading Messages to a Collection
+    - 5.4. Changing the Subject of a Collection
+    - 5.5. Offline Messages
+    - 5.6. Groupchat Messages
+    - 5.7. Linking Collections
+    - 5.8. Associating Attributes with a Collection
+  - 6. Encryption
+
+XEP-0199: XMPP Ping
+  Implemented
+
+XEP-0203 Delayed Delivery
+  Implemented

@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>XWChat</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="src/JSJaC.js"></script>
+  <script type="text/javascript" src="config.js"></script>
+  <script type="text/javascript" src="extra.js"></script>
+  <script type="text/javascript" src="client.js"></script>
+  <script type="text/javascript" src="search.js"></script>
+  <script type="text/javascript" src="roster.js"></script>
+  <link rel="stylesheet" type="text/css" href="client.css" />
+</head>
+<body id="xcRoster">
+  <div id="xcChat">
+
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader">
+        <ul class="xcLinks xcRosterMenu">
+          <li id="xcRosterConfigLink"><a href="javascript:var w = xcWinOpen('configuration', '', 'CONFIGURATION', 'CONFIGURATION');">Settings</a></li>
+          <li id="xcRosterPrivacyIcon"><a href="javascript:var w = xcWinOpen('privacylist', '', 'PRIVACYLIST', 'PRIVACYLIST');" title="Privacy Lists">Privacy</a></li>
+          <li id="xcRosterHelpLink"><a href="javascript:var w = xcWinOpen('help', '', 'HELP', 'HELP');">Help</a></li>
+        </ul>
+
+        <div id="xcUser" class="xcUser clearfix presence unavailable">
+          <span class="xcUserNameContainer">
+            <a href="javascript:var w = xcWinOpen('vcard', '', 'VCARD', 'VCARD');" id="xcUserName" title="Edit your profile" onMouseOver="JQ('.xcUserJIDContainer').slideDown();" onMouseOut="setTimeout(function() { JQ('.xcUserJIDContainer').slideUp(); }, 3000);"></a>
+          </span>
+          <span class="xcUserJIDContainer">
+          </span>
+          <span class="xcUserPresenceToggle">
+            <a href="#" onclick="xcTogglePresenceSelector()" id="xcUserPresenceDisplay">Offline</a>
+          </span>
+        </div>
+      </div><!-- xcHeader -->
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcUserPresenceContainer" class="xcDrawer" style="display:none">
+        <ul id="xcUserPresenceList">
+          <li class="presence available clearfix">
+            <a href="#" onclick="xcPresenceSend('', 'Available');xcTogglePresenceSelector()">Available</a>
+            <a href="#" onclick="xcPresenceSend('', 'Chat');xcTogglePresenceSelector()">Chat</a>
+            <a href="#" onclick="JQ('#xcCustomMessageAvailableContainer').toggle();JQ('#xcCustomMessageAvailable').focus();return false;">Custom</a>
+            <div id="xcCustomMessageAvailableContainer" class="xcCustomMessage" style="display:none">
+              <input type="text" id="xcCustomMessageAvailable" name="custom_message_available" value="" class="xcInput" />
+            </div>
+            <script type="text/javascript">
+              JQ('#xcCustomMessageAvailable').keydown(function(e) {
+                var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+                if (keycode == 13) {
+                  JQ(this).blur();
+                  return false;
+                };
+                return true;
+              }).blur(function() {
+                if (this.value) {
+                  xcPresenceSend('', this.value);
+                  this.value = '';
+                  JQ('#xcCustomMessageAvailableContainer').hide();
+                  xcTogglePresenceSelector();
+                  JQ('.xcSpinner').show();
+                }
+              });
+            </script>
+          </li>
+          <li class="presence away clearfix">
+            <a href="#" onclick="xcPresenceSend('away', 'Away');xcTogglePresenceSelector()">Away</a>
+            <a href="#" onclick="xcPresenceSend('dnd', 'Busy');xcTogglePresenceSelector()">Busy</a>
+            <a href="#" onclick="JQ('#xcCustomMessageAwayContainer').toggle();JQ('#xcCustomMessageAway').focus();return false;">Custom</a>
+            <div id="xcCustomMessageAwayContainer" class="xcCustomMessage" style="display:none">
+              <input type="text" id="xcCustomMessageAway" name="custom_message_away" value="" class="xcInput" />
+            </div>
+            <script type="text/javascript">
+              JQ('#xcCustomMessageAway').keydown(function(e) {
+                var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+                if (keycode == 13) {
+                  JQ(this).blur();
+                  return false;
+                };
+                return true;
+              }).blur(function() {
+                if (this.value) {
+                  JQ('.xcSpinner').show();
+                  xcPresenceSend('away', this.value);
+                  this.value = '';
+                  JQ('#xcCustomMessageAwayContainer').hide();
+                  xcTogglePresenceSelector();
+                }
+              });
+            </script>
+          </li>
+          <!-- li class="presence invisible clearfix">
+            <a href="#" onclick="xcPresenceSend('invisible', 'Invisible');xcTogglePresenceSelector()">Invisible</a>
+          </li -->
+        </ul>
+      </div>
+
+      <div id="xcContent">
+        <div id="xcCL" class="xcRoster"></div>
+      </div><!-- xcContent -->
+
+      <div id="msg" class="xcMessage"></div>
+    </div><!-- xcWrapper -->
+
+    <div id="xcFooterWrapper">
+      <div id="xcFooter">
+        <ul class="xcLinks clearfix">
+          <li id="xcRosterAddUserIcon">
+            <a href="javascript:var w = xcWinOpen('adduser', '', 'ADDUSER', 'ADDUSER');" title="Add Associate"><span class="plus">+</span> Add Contact</a>
+          </li>
+          <li id="xcRosterBookmarkLink">
+            <a href="javascript:var w = xcWinOpen('bookmarks', '', 'BOOKMARKS', 'BOOKMARKS');"><span class="plus">+</span> Add Bookmark</a>
+          </li>
+          <li id="xcRosterMUCIcon" class="right">
+            <a href="javascript:var w = xcWinOpen('muc_config', '', 'MUCCONFIG', 'MUCCONFIG');" title="Group Chat">Group Chats</a>
+          </li>
+        </ul>
+      </div>
+    </div><!-- xcFooter -->
+  </div><!-- xcChat -->
+
+  <!-- context menus -->
+  <div class="xcContextMenu" id="xcRightMenu" oncontextmenu="return false;">
+    <ul oncontextmenu="return false;">
+      <li id="archive" oncontextmenu="return false;">Chat Log</li>
+      <li id="chat" oncontextmenu="return false;">Chat</li>
+      <li id="info" oncontextmenu="return false;">Info</li>
+      <li id="getpresence" oncontextmenu="return false;">Get Presence</li>
+      <li id="setpresence" oncontextmenu="return false;">Set Presence</li>
+      <li id="remove" oncontextmenu="return false;">Remove</li>
+      <li id="resubscribe" oncontextmenu="return false;">Resubscribe</li>
+      <li id="update" oncontextmenu="return false;">Update</li>
+    </ul>
+  </div>
+  <div class="xcPopup"></div>
+  <div class="xcBookmarkContextMenu" id="xcBookmarkRightMenu" oncontextmenu="return false;">
+    <ul oncontextmenu="return false;">
+      <li id="open_bookmark" oncontextmenu="return false;">Open</li>
+      <li id="remove_bookmark" oncontextmenu="return false;">Remove</li>
+      <li id="update_bookmark" oncontextmenu="return false;">Update</li>
+    </ul>
+  </div>
+  <!-- context menus -->
+
+  <div id="xcSpinner" class="xcSpinner" style="display:none">
+    Working...
+  </div>
+
+  <!-- popup div for user information -->
+  <div id="xcUserInformation" class="xcUserInformation">
+    <div class="link"><a href="#" onclick="JQ('.xcUserInformation').slideUp();" class="close">Close</a></div>
+    <div class="jid"><label>JID: </label><span></span></div>
+    <div class="resource"><label>Resource: </label><span></span></div>
+    <div class="name"><label>Name: </label><span></span></div>
+    <div class="show"><label>Show: </label><span></span></div>
+    <div class="status"><label>Status: </label><span></span></div>
+    <div class="subscription"><label>Subscription: </label><span></span></div>
+  </div>
+
+</body>
+</html>

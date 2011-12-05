@@ -1,0 +1,28 @@
+<?php
+// $Id: xmpp_client.install,v
+
+/**
+ * Implementation of hook_enable().
+ */
+function xmpp_client_enable() {
+  drupal_set_message(t('XMPP Client module successfully installed. Please review the <a href="@settings">configuration settings</a>.', array('@settings' => url('admin/xmppframework/client'))));
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function xmpp_client_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmpp_client_uninstall() {
+  variable_del('xmpp_client_httpbase');
+  variable_del('xmpp_client_authtype');
+  variable_del('xmpp_client_muc_conference');
+  variable_del('xmpp_client_jud');
+  variable_del('xmpp_client_launch');
+  variable_del('xmpp_client_locale');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'xmpp_client_launch_now_%'");
+}

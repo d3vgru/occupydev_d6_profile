@@ -1,0 +1,20 @@
+/**
+ * @file
+ * RTL companion for the nodes.css file.
+ */
+
+
+.node .picture /* The picture of the node author */ {
+  float: left;
+  margin: 0 .5em .5em 0;
+}
+
+.node .submitted /* The "posted by" information */ {
+  background: url(../images/calendar.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+.node ul.links /* Node links. See also the ul.links declaration in the pages.css. */ {
+  text-align: left;
+}

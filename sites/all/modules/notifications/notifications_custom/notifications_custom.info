@@ -1,0 +1,14 @@
+; $Id: notifications_custom.info,v 1.1.4.2 2010/04/05 15:00:29 jareyero Exp $
+name = Custom subscriptions
+description = Allows creating predefined subscriptions and assigning them to users
+package = "Notifications"
+dependencies[] = notifications
+core = 6.x
+php = 5.0
+
+; Information added by drupal.org packaging script on 2010-08-01
+version = "6.x-4.0-beta7"
+core = "6.x"
+project = "notifications"
+datestamp = "1280696476"
+

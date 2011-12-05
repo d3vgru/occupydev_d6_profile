@@ -1,0 +1,11 @@
+name = Taskbar UI
+description = Administration UI for Taskbar
+core = 6.x
+dependencies[] = taskbar
+package = "Taskbar"
+; Information added by drupal.org packaging script on 2011-09-27
+version = "6.x-1.0-beta6"
+core = "6.x"
+project = "taskbar"
+datestamp = "1317156408"
+

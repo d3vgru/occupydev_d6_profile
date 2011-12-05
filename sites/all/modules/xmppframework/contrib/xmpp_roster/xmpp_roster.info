@@ -1,0 +1,15 @@
+; $Id: xmpp_roster.info,v 1.1.2.1.2.14 2009/09/25 20:51:05 darrenferguson Exp $
+name = XMPP-ROSTER
+package = "XMPP Framework"
+description = Provides the ability to synchronize your xmpp roster with xmpp relationships
+core = 6.x
+dependencies[] = xmpp_user
+dependencies[] = user_relationships_api
+project = "xmpp"
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

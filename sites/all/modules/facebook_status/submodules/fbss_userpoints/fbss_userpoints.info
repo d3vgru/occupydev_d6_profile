@@ -1,0 +1,13 @@
+name = Facebook-style Statuses Userpoints
+description = "Integrates Userpoints with Facebook-style Statuses."
+package = Facebook-style Statuses
+dependencies[] = facebook_status
+dependencies[] = userpoints
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-11-25
+version = "6.x-3.0"
+core = "6.x"
+project = "facebook_status"
+datestamp = "1322257240"
+

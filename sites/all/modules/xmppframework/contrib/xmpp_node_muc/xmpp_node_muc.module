@@ -1,0 +1,727 @@
+<?php
+// $Id: xmpp_node_muc.module,v 1.1.2.4.2.17 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * @file
+ * Module providing an XMPP MUCS for Drupal Nodes
+ */
+
+define('XMPP_NODE_MUC_PATH',            drupal_get_path('module', 'xmpp_node_muc'));
+// utilized for the block mechanizm
+define('XMPP_NODE_MUC_BLOCK_MUC_LOG_AMOUNT',    variable_get('xmpp_node_muc_block_muc_log_amount', 3)); // the amount of logs we will show on the block
+define('XMPP_NODE_MUC_DATE_FORMAT',             variable_get('user_profile_date_format', 'small')); // determine the format for the date to be used
+define('XMPP_NODE_MUC_BLOCK_REFRESH',           variable_get('xmpp_node_muc_block_refresh', false)); // block ajax refreshing (true = on, false = off)
+define('XMPP_NODE_MUC_BLOCK_REFRESH_INTERVAL',  variable_get('xmpp_node_muc_block_refresh_interval', 60000)); // block refresh interval in milliseconds
+// if this is set to true it will be shown on all og pages otherwise it will only be shown on the node/nid page
+define('XMPP_NODE_MUC_BLOCK_SHOW_ALL_OG_PAGES', variable_get('xmpp_node_muc_block_show_all_og_pages', false));
+// variables utilized to determine node type
+define('XMPP_NODE_MUC_TEMPORARY', 0);
+define('XMPP_NODE_MUC_PERMANENT', 1);
+define('XMPP_NODE_MUC_UNKNOWN', 2);
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_node_muc_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_node_muc');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides the ability to associate chat rooms with a node');
+      break;
+    case 'admin/help#xmpp_node_muc':
+      $output = '<p>'. t('The xmpp_node_muc module allows you to associate chat rooms with a node') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_init()
+ */
+function xmpp_node_muc_init() {
+  drupal_add_css(XMPP_NODE_MUC_PATH .'/xmpp_node_muc.css');
+  drupal_add_js(XMPP_NODE_MUC_PATH .'/xmpp_node_muc.js');
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_node_muc_perm() {
+  return array('administer xmpp_node_muc', 'xmpp node muc associate');
+}
+
+/**
+ * Implementation of hook_block()
+ */
+function xmpp_node_muc_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $block = array(
+        'xmpp_node_muc_room' => array('info' => t('XMPP_NODE_MUC: Chat Room Transcript')),
+      );
+      break;
+    case 'view':
+      switch ($delta) {
+        case 'xmpp_node_muc_room':
+          $block = xmpp_node_muc_block_chat_transcript();
+          break;
+      }
+  }
+  return $block;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function xmpp_node_muc_theme() {
+  return array(
+    'xmpp_node_muc_block_temporary' => array(
+      'arguments' => array('node' => NULL),
+      'file' => 'xmpp_node_muc.theme.inc'
+    ),
+    'xmpp_node_muc_block_permanent' => array(
+      'arguments' => array('node' => NULL),
+      'file' => 'xmpp_node_muc.theme.inc'
+    ),
+    'xmpp_node_muc_create_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'xmpp_node_muc.theme.inc'
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_xmlrpc()
+ */
+function xmpp_node_muc_xmlrpc() {
+  module_load_include('inc', 'xmpp_node_muc', 'xmpp_node_muc_xmlrpc');
+  return array(
+    array(
+      'xmpp_node_muc.room_presence_update',
+      'xmpp_node_muc_xmlrpc_room_presence_update',
+      array('boolean', 'string', 'string', 'string', 'string', 'string'),
+      t('User has entered the chat room.')),
+    array(
+      'xmpp_node_muc.room_log',
+      'xmpp_node_muc_xmlrpc_room_log',
+      array('boolean', 'string', 'string', 'string', 'string'),
+      t('Room Statistics.')),
+  );
+}
+
+/**
+ * Implementation of hook_cron()
+ */
+function xmpp_node_muc_cron() {
+  // Remove the users from the group if they are inactive for a period of time.
+  // Determined by the administrator of the site. This is a fail safe incase the.
+  // Message that came in was missed regarding the user leaving the site or if the.
+  // XMPP server crashes and no messages are sent to us regarding personnel status.
+  $cron_interval = variable_get('xmpp_node_muc_cron_interval', 1);
+  if (!is_numeric($cron_interval)) {
+    $cron_interval = 1;
+  }
+  $cron_interval = $cron_interval * 86400;
+  $time = time() - $cron_interval;
+  $result = db_query("SELECT n.nid, n.type, x.gid, x.jid FROM {xmpp_node_muc_users} x INNER JOIN {node} n ON x.nid = n.nid WHERE join_time < %d", $time);
+  while ($row = db_fetch_object($result)) {
+    db_query("DELETE FROM {xmpp_node_muc_users} WHERE gid = %d AND nid = %d AND jid = '%s'", $row->gid, $row->nid, $row->jid);
+    // Delete the room from the server if no one remains in it and the room type is temporary.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {xmpp_node_muc_users} WHERE gid = %d", $row->gid));
+    if (xmpp_node_muc_type($row->type) == XMPP_NODE_MUC_TEMPORARY && !$count) {
+      xmpp_node_muc_delete_muc($row->nid, $row->gid);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_node_muc_menu() {
+  $items['admin/xmppframework/node_muc'] = array(
+    'title' => 'Node MUC',
+    'description' => 'Configure the xmpp node muc module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_node_muc_admin_settings'),
+    'access arguments' => array('administer xmpp_node_muc'),
+    'file' => 'xmpp_node_muc.admin.inc',
+  );
+
+  // the below three are ajax call menu item paths so we return information to the screen
+  $items['xmpp_node_muc/launch'] = array(
+    'title' => 'Launch Chat Room for this group',
+    'page callback' => 'xmpp_node_muc_launch',
+    'access arguments' => array('xmpp node muc associate'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.ajax.inc',
+  );
+  $items['xmpp_node_muc/block_refresh/temporary'] = array(
+    'title' => 'Refresh Temporary Chat Room Block',
+    'page callback' => 'xmpp_node_muc_block_refresh_temporary',
+    'access arguments' => array('xmpp node muc associate'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.ajax.inc',
+  );
+  $items['xmpp_node_muc/block_refresh/permanent'] = array(
+    'title' => 'Refresh Permanent Chat Room Block',
+    'page callback' => 'xmpp_node_muc_block_refresh_permanent',
+    'access arguments' => array('xmpp node muc associate'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.ajax.inc',
+  );
+
+  // for permanent nodes where we create sub groups for them if necessary
+  $items['node/%node/mucs'] = array(
+    'title' => 'Chat Rooms',
+    'page callback' => 'xmpp_node_muc_list_mucs',
+    'page arguments' => array(1),
+    'access callback' => 'xmpp_node_muc_determine_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/create_muc'] = array(
+    'title' => 'Create Chat Room',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_node_muc_create', 1),
+    'access callback' => 'xmpp_node_muc_determine_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/edit_muc/%'] = array(
+    'title' => 'Edit Chat Room',
+    'page callback' => 'xmpp_node_muc_edit',
+    'page arguments' => array(1, 3),
+    'access callback' => 'xmpp_node_muc_determine_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/delete_muc/%'] = array(
+    'title' => 'Delete Chat Room',
+    'page callback' => 'xmpp_node_muc_delete',
+    'page arguments' => array(1, 3),
+    'access callback' => 'xmpp_node_muc_determine_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/conversations'] = array(
+    'title' => 'Conversations',
+    'page callback' => 'xmpp_node_muc_temporary_conversation_list',
+    'page arguments' => array(1),
+    'access callback' => 'xmpp_node_muc_temporary_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/conversation/%'] = array(
+    'title' => 'Conversation Log',
+    'page callback' => 'xmpp_node_muc_temporary_conversation',
+    'page arguments' => array(1, 3),
+    'access callback' => 'xmpp_node_muc_temporary_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  $items['node/%node/affiliations/update/%'] = array(
+    'title' => 'Muc Affiliations',
+    'page callback' => 'xmpp_node_muc_affiliations_update',
+    'page arguments' => array(1, 4),
+    'access callback' => 'xmpp_node_muc_determine_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_node_muc.page.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function xmpp_node_muc_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['type']) && isset($form['#node'])) {
+    $node = $form['#node'];
+    if (module_exists('og') && function_exists('og_is_group_type')) {
+      if (og_is_group_type($node->type) === TRUE) {
+        // Verify if the form is being submitted and if so verify if we have a room name in the form
+        // If we do we should make that the default value incase this was just a preview and not the
+        // Full save of the information otherwise the field will appear empty to the user on preview
+        if ($form_state['submitted'] == 1 &&
+            isset($form_state['values']['xmpp_node_muc_chat_room_name']) &&
+            drupal_strlen($form_state['values']['xmpp_node_muc_chat_room_name'])) {
+          $room_name = $form_state['values']['xmpp_node_muc_chat_room_name'];
+        }
+        else {
+          // Will be the update form being displayed so show the current room name
+          if (!is_null($node->nid) && is_numeric($node->nid)) {
+            $name = db_result(db_query("SELECT title FROM {xmpp_node_muc_groups} WHERE nid = %d AND sub_group = 0", $node->nid));
+            $room_name = substr($name, 0, strpos($name, '@'));
+          }
+          else {
+            $room_name = '';
+          }
+        }
+        $form['xmpp_node_muc'] = array('#type' => 'fieldset', '#title' => t('XMPP Node MUC'), '#collapsible' => TRUE, '#collapsed' => FALSE);
+        $form['xmpp_node_muc']['xmpp_node_muc_chat_room_name'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Name for associated chat room'),
+          '#default_value' => $room_name,
+          '#description' => t('The name you wish to give the chat room on the chat server, if this is empty the system will auto generate a name'),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function xmpp_node_muc_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($op == 'insert' && xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+    xmpp_node_muc_create_muc($node, 0);
+  }
+
+  if ($op == 'delete' && xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+    xmpp_node_muc_delete_muc($node->nid, NULL);
+  }
+
+  if ($op == 'update' && xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+    xmpp_node_muc_update_muc($node);
+  }
+}
+
+/**
+ * Implementation of hook_link()
+ */
+function xmpp_node_muc_link($type, $node = NULL, $teaser = FALSE) {
+  global $user;
+  $links = array();
+  // allow link if they have permissions and type is node and the user is logged in
+  if (user_access('xmpp node muc associate') && $type == 'node' && $user->uid && xmpp_node_muc_type($node->type) != XMPP_NODE_MUC_UNKNOWN) {
+    // determine if the node is a type designated as an og if it is then check
+    // if the user is in the group, if not then we return the links array empty
+    if (!(_xmpp_node_muc_og_user_check($node, $user))) {
+      return $links;
+    }
+
+    // since we will create mucs automatically for the types with permanent mucs we do not need to do any further processing here
+    if (db_result(db_query("SELECT COUNT(*) FROM {xmpp_node_muc_groups} WHERE nid = %d", $node->nid))) {
+      $title = t('Join Chat Room');
+    }
+    else {
+      $title = t('Create Chat Room');
+    }
+    $url = url('xmpp_node_muc/launch'); // ajax url we will utilize to launch the muc
+    $links['xmpp_node_muc'] = array(
+      'title' => $title,
+      'html' => TRUE,
+      'href' => '#',
+      'attributes' => array('nid' => $node->nid, 'url' => $url),
+    );
+  }
+  return $links;
+}
+
+/**
+ * Implementation of hook_footer()
+ */
+function xmpp_node_muc_footer($main = 0) {
+  $output = '<div class="xmpp_node_muc_msg_alert"></div>';
+  return $output;
+}
+
+/**
+ * Implementation of hook_og()
+ */
+function xmpp_node_muc_og($op, $gid, $uid, $args) {
+  // User has been added / updated in the group
+  if ($op == 'user insert' || $op == 'user update') {
+    if ($args['is_active']) {
+      $account = user_load(array('uid' => $uid));
+      if (isset($account->xmpp_user) && is_array($account->xmpp_user) && isset($account->xmpp_user['jid'])) {
+        // We want to add the user to the list but if they are an admin we want to make them an admin not just member
+        $affiliation = 'member';
+        if (isset($args['is_admin']) && $args['is_admin']) {
+          $affiliation = 'admin';
+        }
+        $result = db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE nid = %d", $gid);
+        while ($row = db_fetch_object($result)) {
+          $room = explode("@", $row->title);
+          // setting the user to have an affiliation with the room to allow them access
+          xmppframework_set_user_muc_affiliation($room[0], $room[1], $account->xmpp_user['jid'], $affiliation);
+        }
+      }
+    }
+  }
+  // User has been removed from the group
+  if ($op == 'user delete') {
+    $account = user_load(array('uid' => $uid));
+    // We only alter the configuration if the user actually has an xmpp jid associated with the account
+    if (isset($account->xmpp_user) && is_array($account->xmpp_user) && isset($account->xmpp_user['jid'])) {
+      $result = db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE nid = %d", $gid);
+      while ($row = db_fetch_object($result)) {
+        $room = explode("@", $row->title);
+        xmppframework_set_user_muc_affiliation($room[0], $room[1], $account->xmpp_user['jid'], 'none');
+      }
+    }
+  }
+}
+
+/*********************************************************************************************************
+ * MENU ACCESS PERMISSION CHECK FUNCTION
+ *********************************************************************************************************/
+
+/**
+ * The reason for this function is to make sure the MUC link and actions are only available to permanent
+ * node types since we do not wish to implement a hierarchy for the temporary nodes
+ *
+ * @param $action
+ *      Action that will be performed on the node
+ * @param $node
+ *      The node we are currently working on
+ */
+function xmpp_node_muc_determine_access($action, $node) {
+  if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT && node_access($action, $node)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * The reason for this function is to make sure the conversations link is only available to the temporary
+ * node and that the permanent nodes will not get this link
+ *
+ * @param $node
+ *      The node we are currently working on
+ */
+function xmpp_node_muc_temporary_access($node) {
+  if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_TEMPORARY) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/*********************************************************************************************************
+ * BLOCK FUNCTIONS
+ *********************************************************************************************************/
+
+function xmpp_node_muc_block_chat_transcript() {
+  // determine if we are actually viewing a node, if so load the node then check if the type is allowed
+  if (is_numeric(arg(1)) && ($node = node_load(arg(1))) && xmpp_node_muc_type($node->type) != XMPP_NODE_MUC_UNKNOWN) {
+    // check put in to only show the block on the main og page
+    if (!XMPP_NODE_MUC_BLOCK_SHOW_ALL_OG_PAGES) {
+      if (function_exists('og_is_group_type') && og_is_group_type($node->type) && arg(2)) {
+        return array();
+      }
+    }
+    $block['subject'] = t('%title Chat Transcripts', array('%title' => $node->title));
+    // determine whether to show the temporary or permanent block depending on the type
+    if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_TEMPORARY) {
+      $block['content'] = theme('xmpp_node_muc_block_temporary', $node);
+    }
+    else {
+      $block['content'] = theme('xmpp_node_muc_block_permanent', $node);
+    }
+  }
+  return $block;
+}
+
+/*********************************************************************************************************
+ * FUNCTIONS
+ *********************************************************************************************************/
+
+/**
+ * @param $type
+ *      The type we are checking against
+ */
+function xmpp_node_muc_type($type) {
+  $array = variable_get('xmpp_node_muc_types_temporary', array());
+  if (isset($array[$type]) && $array[$type]) {
+    return XMPP_NODE_MUC_TEMPORARY;
+  }
+  $array = variable_get('xmpp_node_muc_types_permanent', array());
+  if (isset($array[$type]) && $array[$type]) {
+    return XMPP_NODE_MUC_PERMANENT;
+  }
+  return XMPP_NODE_MUC_UNKNOWN;
+}
+
+/*********************************************************************************************************
+ * MUC XMLRPC FUNCTIONS
+ *********************************************************************************************************/
+
+/**
+ * Handle muc creation including making the xmlrpc request to ejabberd
+ *
+ * @param $node
+ *      The node we are creating the muc for
+ * @param $sub_group
+ *      Boolean and if sub_group will be extra muc for the group
+ */
+function xmpp_node_muc_create_muc($node, $sub_group = 0) {
+  if (!db_result(db_query("SELECT COUNT(*) FROM {xmpp_node_muc_groups} WHERE nid = %d", $node->nid)) || $sub_group) {
+    $server = variable_get('xmpp_node_muc_server', '');
+    $service = variable_get('xmpp_node_muc_service', '');
+
+    if (drupal_strlen(trim($server)) && drupal_strlen(trim($service))) {
+      if (isset($node->xmpp_node_muc_chat_room_name) && drupal_strlen($node->xmpp_node_muc_chat_room_name)) {
+        $name = str_replace(" ", "_", strtolower($node->xmpp_node_muc_chat_room_name));
+        $title = $name .'@'. $service;
+        // Since we allow the users to select their own names we need to verify that it does not already exist
+        $result = db_result(db_query("SELECT gid FROM {xmpp_node_muc_groups} WHERE title = '%s'", $title));
+        if (!is_null($result) && is_numeric($result)) {
+          $gid = _xmpp_node_muc_next_gid(); // retrieve a new gid for the group
+          $name = strtolower('muc_'. $node->nid .'_'. $gid);
+          $title = $name .'@'. $service;
+          drupal_set_message(t('Room with name: !name already existed on the server, current name is set too !current_name', array('!name' => $node->xmpp_node_muc_chat_room_name, '!current_name' => $name)));
+        }
+        else {
+          $gid = _xmpp_node_muc_next_gid(); // retrieve a new gid for the group
+        }
+      }
+      else {
+        $gid = _xmpp_node_muc_next_gid(); // retrieve a new gid for the group
+        $name = strtolower('muc_'. $node->nid .'_'. $gid);
+        $title = $name .'@'. $service;
+      }
+      // add the group to the database so we can manipulate it
+      db_query("INSERT INTO {xmpp_node_muc_groups} (gid, nid, title, sub_group, name) VALUES (%d, %d, '%s', %d, '%s')", $gid, $node->nid, $title, $sub_group, $name);
+      // in this case we want the description name to be the actual name for the server
+      _xmpp_node_muc_create_muc($name, $service, $server, $name);
+      // If this is going to be a permanent node we want too create the group as private
+      if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+        // making the group muc members only so only group members can enter the muc
+        xmppframework_configure_muc($name, $service, $server, 'members_only', true);
+      }
+      return $gid;
+    }
+  }
+}
+
+/**
+ * @param $nid
+ *      Node ID we are removing the muc from
+ * @param $gid
+ *      The group you wish to delete if NULL remove all of them
+ */
+function xmpp_node_muc_delete_muc($nid, $gid = NULL) {
+  $server = variable_get('xmpp_node_muc_server', '');
+  $service = variable_get('xmpp_node_muc_service', '');
+  // can only remove if the server is configured correctly otherwise we cannot
+  if (drupal_strlen(trim($server)) && drupal_strlen(trim($service))) {
+    if ($gid) {
+      // single group being removed hence remove just that group
+      $group = db_fetch_object(db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE gid = %d", $gid));
+      $name = substr($group->title, 0, strpos($group->title, '@'));
+      _xmpp_node_muc_delete_muc($name, $service, $server); // actually deleting the muc from the service
+      // make sure the group is removed from the database
+      db_query("DELETE FROM {xmpp_node_muc_users} WHERE gid = %d", $gid);
+      db_query("DELETE FROM {xmpp_node_muc_groups} WHERE gid = %d", $gid);
+    }
+    else {
+      // going through every muc associated with the node so they can be removed from the system
+      $result = db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE nid = %d", $nid);
+      while ($group = db_fetch_object($result)) {
+        $name = substr($group->title, 0, strpos($group->title, '@'));
+        _xmpp_node_muc_delete_muc($name, $service, $server); // actually deleting the muc from the server
+        // make sure the group is removed from the database
+        db_query("DELETE FROM {xmpp_node_muc_users} WHERE gid = %d", $group->gid);
+        db_query("DELETE FROM {xmpp_node_muc_groups} WHERE gid = %d", $group->gid);
+      }
+    }
+  }
+}
+
+/**
+ * Function called when an existing node is updated in the system
+ */
+function xmpp_node_muc_update_muc($node) {
+  if ($node->nid) {
+    $row = db_fetch_object(db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE nid = %d AND sub_group = 0", $node->nid));
+    // If one does not exist we should create it at this point
+    if (!$row) {
+      xmpp_node_muc_create_muc($node);
+      // If the node is a permanent node we want to make sure we set room to members only
+      if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+        // setting the virtual host and server variables needed by the configure function
+        $server = variable_get('xmpp_node_muc_server', '');
+        $service = variable_get('xmpp_node_muc_service', '');
+        if (drupal_strlen(trim($server)) && drupal_strlen(trim($service))) {
+          $name = substr($row->title, 0, strpos($row->title, '@'));
+          // making the group muc members only so only group members can enter the muc
+          xmppframework_configure_muc($name, $service, $server, 'members_only', true);
+        }
+      }
+    }
+    else {
+      // if the name has changed, then change the title of the muc on the xmpp server to match
+      if (strcmp($node->title, $row->name)) {
+        // setting the virtual host and server variables needed by the configure function
+        $server = variable_get('xmpp_node_muc_server', '');
+        $service = variable_get('xmpp_node_muc_service', '');
+        if (drupal_strlen(trim($server)) && drupal_strlen(trim($service))) {
+          $name = substr($row->title, 0, strpos($row->title, '@'));
+          // The room name has been altered so we want to alter it on the server
+          if (strcasecmp($name, $node->xmpp_node_muc_chat_room_name) != 0) {
+            _xmpp_node_muc_delete_muc($name, $service, $server); // delete the old room from the server
+            $name = str_replace(" ", "_", strtolower($node->xmpp_node_muc_chat_room_name)); // set the name to the new room
+            $title = $name .'@'. $service; // set the title that will be utilized as the full jid for the room
+            // Updating the database with the new information
+            db_query("UPDATE {xmpp_node_muc_groups} SET title = '%s', name = '%s' WHERE nid = %d AND gid = %d", $title, $name, $node->nid, $row->gid);
+            _xmpp_node_muc_create_muc($name, $service, $server, $name); // Creating the new room on the server
+            // If this is going to be a permanent node we want too create the group as private
+            if (xmpp_node_muc_type($node->type) == XMPP_NODE_MUC_PERMANENT) {
+              // making the group muc members only so only group members can enter the muc
+              xmppframework_configure_muc($name, $service, $server, 'members_only', true);
+              _xmpp_node_muc_set_all_node_affiliations($node, $name, $service); // making sure we reset the affiliations
+            }
+            // Setting the title for the muc on the xmpp server to be the new title we received
+            xmppframework_configure_muc($name, $service, $server, 'title', $name);
+          }
+          else {
+            if (!isset($node->xmpp_node_muc_chat_room_name) || !drupal_strlen($node->xmpp_node_muc_chat_room_name)) {
+              db_query("UPDATE {xmpp_node_muc_groups} SET name = '%s' WHERE nid = %d AND sub_group = 0", $node->title, $node->nid);
+              // Setting the title for the muc on the xmpp server to be the new title we received
+              xmppframework_configure_muc($name, $service, $server, 'title', $node->title);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/*********************************************************************************************************
+ * INTERNAL FUNCTIONS FOR USE ONLY XMPP NODE MUC MODULE
+ *********************************************************************************************************/
+
+/**
+ * Function determines if the node is an og and if it is determine if the user
+ * is a member of the group and hence can actually see the join link or not
+ *
+ * @param $node
+ *      Node Object
+ * @param $user
+ *      User Object
+ */
+function _xmpp_node_muc_og_user_check($node, $user) {
+  // adding check for the og portion if the og module is available
+  // if the node type is a group and the user is not a member then do not show the join
+  if (module_exists('og') && function_exists('og_is_group_type')) {
+    if (og_is_group_type($node->type)) {
+      return og_is_group_member($node, FALSE, $user->uid);
+    }
+  }
+  return TRUE;
+}
+
+/**
+ * Function returns the next gid that we will utilize
+ */
+function _xmpp_node_muc_next_gid() {
+  $gid = db_result(db_query("SELECT gid FROM {xmpp_node_muc_gid}"));
+  $gid++;
+  db_query("UPDATE {xmpp_node_muc_gid} SET gid = %d", $gid);
+  return $gid;
+}
+
+/**
+ * @param $name
+ *      The name of the muc being created
+ * @param $service
+ *      The conference server the muc will be created on
+ * @param $server
+ *      The server the muc will be created on
+ * @param $title
+ *      The description name for the room
+ */
+function _xmpp_node_muc_create_muc($name, $service, $server, $title) {
+  // creating the muc utilizing the xmppframekwork
+  xmppframework_create_muc($name, $service, $server, $title);
+}
+
+/**
+ * @param $name
+ *      The name of the muc being created
+ * @param $service
+ *      The conference server the muc will be created on
+ * @param $server
+ *      The server the muc will be created on
+ */
+function _xmpp_node_muc_delete_muc($name, $service, $server) {
+  // deleteing the muc utilizing the xmppframework
+  xmppframework_delete_muc($name, $service, $server);
+}
+
+/**
+ * Function retrieves the top level muc information for the particular node
+ *
+ * @param $nid
+ *      The node id that we wish to get the top level muc
+ */
+function _xmpp_node_muc_group_toplevel($nid) {
+  return db_fetch_object(db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE nid = %d ORDER BY sub_group ASC LIMIT 1", $nid));
+}
+
+/**
+ * @param $gid
+ *      Gid of the group we are wishing to load into the variable
+ */
+function _xmpp_node_muc_group_load($gid) {
+  return db_fetch_object(db_query("SELECT * FROM {xmpp_node_muc_groups} WHERE gid = %d", $gid));
+}
+
+/**
+ * @param $title
+ *      Title of the group we are trying to get the gid for
+ */
+function _xmpp_node_muc_group_gid($title) {
+  return db_result(db_query("SELECT gid FROM {xmpp_node_muc_groups} WHERE title = '%s'", $title));
+}
+
+/**
+ * @param $nid
+ *      Node ID
+ */
+function _xmpp_node_muc_count_mucs_from_nid($nid) {
+  return db_result(db_query("SELECT COUNT(gid) FROM {xmpp_node_muc_groups} WHERE nid = %d", $nid));
+}
+
+/**
+ * @param $gid
+ *      Group ID
+ */
+function _xmpp_node_muc_count_users_from_gid($gid) {
+   return db_result(db_query("SELECT COUNT(gid) FROM {xmpp_node_muc_users} WHERE gid = %d", $gid));
+}
+
+/**
+ * Set all of the affiliations for a particular muc room to all members of the Drupal group
+ *
+ * @param $node
+ *  Group Node
+ * @param $name
+ *  Name of the muc on the xmpp server
+ * @param $service
+ *  Service the muc sits on in the xmpp server
+ */
+function _xmpp_node_muc_set_all_node_affiliations($node, $name, $service) {
+  // Retrieving the list of the users associated with the group
+  $result = db_query("SELECT ou.uid, ou.is_active, ou.is_admin, xu.jid FROM {og_uid} ou INNER JOIN {xmpp_user} xu ON ou.uid = xu.uid WHERE nid = %d", $node->nid);
+  while ($row = db_fetch_object($result)) {
+    if (is_numeric($row->is_active) && $row->is_active) {
+      $affiliation = 'member';
+      if ($row->is_admin === 1) {
+        $affiliation = 'admin';
+      }
+    }
+    // making the group muc mebers only so only group members can enter the muc
+    xmppframework_set_user_muc_affiliation($name, $service, $row->jid, $affiliation);
+  }
+}

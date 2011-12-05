@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Chat Client</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript">
+    var winopts = "top=25,width=275,height=400,location=0,scrollbars=1,resizable=1";
+    function xcLogin(username, password, domain, resource) {
+      var w = window.open('roster.html?&username=' + username + '&password=' + password + '&resource=' + resource + '&domain=' + domain,'ROSTERWIN', winopts);
+      w.focus();
+    };
+    JQ(document).keydown(function(e) {
+      var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+      if (keycode == 13) {
+        JQ('#login_button').click();
+        return false;
+      };
+      return true;
+    });
+
+    JQ(document).ready(function() { JQ('#resource').val('xwchat'); });
+  </script>
+</head>
+<body>
+  <h1>Chat Web Client</h1>
+  <div id="login_pane">
+   <h2>Login</h2>
+   <form name="loginForm" action="#">
+    <div>
+     <div style="display: inline; font-weight: bold;">Username: </div>
+     <div style="display: inline;"><input type="text" name="username" value="" class="xcInput" /></div>
+    </div>
+    <div>
+     <div style="display: inline; font-weight: bold;">Password: </div>
+     <div style="display: inline;"><input type="password" name="password" value="" class="xcInput" /></div>
+    </div>
+    <div>
+     <div style="display: inline; font-weight: bold;">Domain: </div>
+     <div style="display: inline;"><input type="domain" name="domain" value="" class="xcInput" /></div>
+    </div>
+    <div>
+     <div style="display: inline; font-weigth: bold;">Resource: </div>
+     <div style="display: inline;"><input type="text" id="resource" name="resource" value="" class="xcInput" /></div>
+    </div>
+    <div>
+     <input type="button" id="login_button" value="Client" class="xcButton" onClick="xcLogin(this.form.username.value, this.form.password.value, this.form.domain.value, this.form.resource.value);">
+    </div>
+   </form>
+  </div>
+</body>
+</html>

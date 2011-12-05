@@ -1,0 +1,213 @@
+<?php
+// $Id: xmpp_vcard.module,v 1.1.2.3.2.17 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_vcard_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_vcard');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides the ability to synchronize your xmpp server vcard');
+      break;
+    case 'admin/help#xmpp_vcard':
+      $output = '<p>'. t('The xmpp_vcard module provides the ability to synchronize your xmpp vcard based off your drupal information') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_vcard_perm() {
+  return array('administer xmpp vcard', 'synchronize xmpp vcard');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_vcard_menu() {
+  $items['admin/xmppframework/vcard'] = array(
+    'title' => 'VCard',
+    'description' => 'Configure the xmpp vcard module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_vcard_admin_settings'),
+    'access arguments' => array('administer xmpp vcard'),
+    'file' => 'xmpp_vcard.admin.inc',
+  );
+  $items['admin/xmppframework/vcard/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/xmppframework/vcard/fields'] = array(
+    'title' => 'Fields',
+    'description' => 'Edit the fields that can be mapped for XMPP Vcards',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_vcard_fields_form'),
+    'access arguments' => array('administer xmpp vcard'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_vcard.admin.inc',
+    'weight' => 5,
+  );
+  $items['admin/xmppframework/vcard/fields/delete'] = array(
+    'title' => 'Delete Fields',
+    'description' => 'Remove an existing XMPP Field from the system',
+    'page callback' => 'xmpp_vcard_fields_delete',
+    'access arguments' => array('administer xmpp vcard'),
+    'type' => MENU_SUGGESTED_ITEM,
+    'file' => 'xmpp_vcard.admin.inc',
+  );
+  $items['admin/xmppframework/vcard/mappings'] = array(
+    'title' => 'Mappings',
+    'description' => 'Map Drupal Content Profile Fields too XMPP VCard Fields',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_vcard_mappings_form'),
+    'access arguments' => array('administer xmpp vcard'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_vcard.admin.inc',
+    'weight' => 10,
+  );
+  $items['admin/xmppframework/vcard/mappings/delete'] = array(
+    'title' => 'Delete Mapping',
+    'description' => 'Remove an existing mapping between VCard and Content Profile fields',
+    'page callback' => 'xmpp_vcard_mappings_delete',
+    'access arguments' => array('administer xmpp vcard'),
+    'type' => MENU_SUGGESTED_ITEM,
+    'file' => 'xmpp_vcard.admin.inc',
+  );
+  $items['user/%user/vcard'] = array(
+    'title' => 'XMPP VCard',
+    'description' => 'Display the users vcard as stored on the xmpp server',
+    'page callback' => 'xmpp_vcard_synchronize',
+    'page arguments' => array(1),
+    'access callback' => 'xmpp_vcard_permissions',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_vcard.internal.inc',
+  );
+  $items['xmpp_vcard/synchronize'] = array(
+    'title' => 'Synchronize Field',
+    'description' => 'Synchronize a specific field',
+    'page callback' => 'xmpp_vcard_synchronize_field',
+    'access callback' => 'xmpp_vcard_permissions',
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_vcard.internal.inc',
+  );
+  $items['xmpp_vcard/synchronize/all'] = array(
+    'title' => 'Synchronize All',
+    'description' => 'Synchronize all of the fields',
+    'page callback' => 'xmpp_vcard_synchronize_all',
+    'access callback' => 'xmpp_vcard_permissions',
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_vcard.internal.inc',
+  );
+  return $items;
+}
+
+/**
+ * Access permission function to determine if we will display the tab or not
+ *
+ * @param $user
+ *      User object
+ */
+function xmpp_vcard_permissions($account = NULL) {
+  global $user;
+  if (is_null($account)) {
+    $account = $user;
+  }
+  // Verify if the user is the same person whose account we are looking at and if they have the pertinent permissions
+  if ($account->uid == $user->uid && user_access('synchronize xmpp vcard') && isset($account->xmpp_user['jid']) && xmppframework_function_exists('get_vcard')) {
+    return TRUE;
+  }
+  // XMPP Admin hence will allow them so see all XMPP information since they can in theory do anything as the admin
+  if (user_access('administer xmpp framework') && isset($account->xmpp_user['jid']) && xmppframework_function_exists('get_vcard')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function xmpp_vcard_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  global $user;
+  switch ($op) {
+    case 'update':
+      // act only on types designated as profile types and if the xmppframework function for vcard exists
+      if (!is_content_profile($node->type) || !xmppframework_function_exists('set_vcard')) {
+        return;
+      }
+      // retrieve the users vcard from storage, if nothing is there, then don't do anything
+      $vcard = unserialize(variable_get('xmpp_vcard_user_vcard_'. $user->uid, ''));
+      if (is_array($vcard)) {
+        $tuser = new StdClass();
+        $tuser->uid = 0;
+        foreach ($node as $key => $value) {
+          if ($field = _xmpp_vcard_fields(strtoupper($key))) {
+            // clearing the value
+            $vcard = _xmpp_vcard_set_value($vcard, $key, '');
+          }
+        }
+        // set the vcard on the xmpp server for the user
+        xmppframework_set_user_vcard($vcard);
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function xmpp_vcard_theme() {
+  return array(
+    'xmpp_vcard_information' => array(
+      'arguments' => array('vcard' => NULL, 'profile' => NULL),
+      'file' => 'xmpp_vcard.theme.inc',
+    ),
+    'xmpp_vcard_mappings_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'xmpp_vcard.theme.inc',
+    ),
+    'xmpp_vcard_fields_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'xmpp_vcard.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_service().
+ */
+function xmpp_vcard_service() {
+  return array(
+    array(
+      '#method' => 'xmpp_vcard.mine',
+      '#callback' => 'xmpp_vcard_service_retrieve',
+      '#file' => array('file' => 'inc', 'module' => 'xmpp_vcard.service'),
+      '#args' => array(),
+      '#return' => 'array',
+      '#help' => t('Retrieve the logged in users vcard from the system'),
+    ),
+  );
+}
+
+
+/**
+ * Function returns the list of supported xmpp vcard fields
+ */
+function _xmpp_vcard_available_fields() {
+  static $array = array();
+  if (empty($array)) {
+    $array = array('' => t('Select One'));
+    $result = db_query("SELECT name, title FROM {xmpp_vcard_fields} ORDER BY title ASC");
+    while ($row = db_fetch_object($result)) {
+      $array[$row->name] = t($row->title);
+    }
+  }
+  return $array;
+}

@@ -1,0 +1,10 @@
+name = "PubSubHubbub Hub"
+description = "Allows Drupal to act as a PubsubHubbub hub."
+dependencies[] = drupal_queue
+core = 6.x
+; Information added by drupal.org packaging script on 2010-06-18
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "push_hub"
+datestamp = "1276870808"
+

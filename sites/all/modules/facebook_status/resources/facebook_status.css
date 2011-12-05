@@ -1,0 +1,190 @@
+/**
+ * @group Visuals
+ *
+ * Things that you are relatively likely to want to override in your theme.
+ */
+
+.facebook-status-textarea-wrapper {
+  border-color: #CCCCCC;
+}
+
+.facebook-status-update .button {
+  background-color: #EEEEEE;
+  border-color: #CCCCCC;
+}
+
+.facebook-status-update .button:hover {
+  background-color: #F6F6F6;
+}
+
+.facebook-status-negative {
+  color: #900000;
+}
+
+.facebook-status-faded {
+  color: #999999;
+}
+
+.facebook-status-time { /* does not affect links */
+  color: #999999;
+}
+
+.facebook-status-item .facebook-status-links ul.links li {
+  background-image: none;
+  list-style: none;
+}
+
+/* Garland floats pictures right, which looks weird in FBSS Views. */
+.view .picture {
+  float: left; /* LTR */
+  margin: 0 1em 0 0;
+  padding: 0;
+}
+
+/* @end */
+
+/**
+ * Miscellaneous
+ */
+
+.facebook-status-chars {
+  clear: both;
+  float: right;
+}
+
+#facebook-status-edit .facebook-status-chars {
+  float: none;
+}
+
+.facebook-status-profile-category .profile {
+  clear: none;
+}
+
+.facebook-status-update {
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+.facebook-status-update #facebook-status-box {
+  margin-bottom: 0;
+}
+
+.facebook-status-item .clearfix:after { /* adopted from Fusion */
+  clear: both;
+  content: ".";
+  display: block;
+  font-size: 0;
+  height: 0;
+  line-height: 0;
+  overflow: auto;
+  visibility: hidden;
+}
+
+/* @group Textareas
+ * 
+ * Make textareas fit in their boxes by bubbling borders and padding up
+ * to a wrapper element.
+ */
+
+.facebook-status-textarea-wrapper {
+  border-style: solid;
+  border-width: 1px;
+  -moz-box-shadow: 1px 1px 0 rgba(0,0,0,0.4) inset, 2px 2px 2px rgba(0,0,0,0.3) inset;
+  -o-box-shadow: 1px 1px 0 rgba(0,0,0,0.4) inset, 2px 2px 2px rgba(0,0,0,0.3) inset;
+  -webkit-box-shadow: 1px 1px 0 rgba(0,0,0,0.4) inset, 2px 2px 2px rgba(0,0,0,0.3) inset;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) inset, 2px 2px 2px rgba(0, 0, 0, 0.3) inset;
+  clear: both;
+  margin-bottom: 0;
+  margin-top: 0;
+  padding: 4px 2px 2px 4px;
+}
+
+.facebook-status-textarea-wrapper .form-item {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.facebook-status-textarea-wrapper textarea {
+  border: 0 none;
+  display: block;
+  line-height: 1.5em;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* @end */
+
+/* @group Buttons */
+
+.facebook-status-update .button {
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+  margin: -1px 0 0;
+  padding: 0.6em 1.2em;
+}
+
+.facebook-status-submit {
+  background-color: transparent;
+  border-style: solid;
+  border-width: 0 1px 1px 1px;
+  float: right;
+  margin: 0;
+  padding: 0;
+}
+
+.facebook-status-back {
+  float: right;
+  margin: 0.5em;
+}
+
+/* @end */
+
+/* @group Entry items
+ *
+ * Media is a generic class for any presentation that generally includes a
+ * user image to one side and content to the other.
+ */
+
+.facebook-status-media > .user-picture {
+  float: left; /* LTR */
+  margin-right: 10px; /* LTR */
+}
+
+.facebook-status-media > .content {
+  overflow: hidden;
+}
+
+.facebook-status-media > .content > * {
+  margin-top: 0.25em;
+}
+
+.facebook-status-media > .content > :first-child {
+  margin-top: 0;
+}
+
+.facebook-status-media .facebook-status-links {
+  float: right;
+}
+
+.facebook-status-media .links li {
+  padding: 0;
+}
+
+.facebook-status-media .links li + li {
+  margin: 0 0 0 0.5em;
+}
+
+.facebook-status-subitem {
+  padding: 0.75em;
+}
+
+.facebook-status-subitem.form-piece {
+  padding-top: 0;
+}
+
+.facebook-status-item .links {
+  margin-bottom: 0;
+}
+
+/* @end */

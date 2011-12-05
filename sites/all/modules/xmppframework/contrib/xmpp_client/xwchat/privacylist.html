@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Privacy Lists</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/jsextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="privacylist.js"></script>
+ </head>
+ <body>
+  <div id="xcErrContainer" class="xcErrContainer">
+   <div class="xcPopupCloseLink" align="right" onClick="xcMsgClear();"></div>
+   <div id="msg" class="xcMessage"></div>
+  </div>
+  <div id="privacylist_new_list" style="display: none;">
+   <form id="privacylist_new_list_form" name="privacylist_new_list_form" onSubmit="xcPrivacyListAdd(this.privacylist_name.value, this.privacylist_type.value, this.privacylist_value.value, this.privacylist_action.value, this.privacylist_order.value, this.privacylist_stanza.value);" action="javascript:;">
+    <fieldset>
+    <script type="text/javascript">
+      document.write('<legend>' + pWin.xcT('New Privacy List') + '</legend>');
+    </script>
+    <table width="100%" border="0" cellspacing="0" cellpadding="1">
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_name" id="privacylist_name_lbl">' + pWin.xcT('Name') + ': <font color="red"><sup>(*)</sup></font></label></td>');
+      </script>
+      <td><input type="text" id="privacylist_name" value="" class="xcInput" /></td>
+     </tr>
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_type" id="privacylist_type_lbl" title="' + pWin.xcT('What is if for, group, subscription, jid or all') + '">' + pWin.xcT('Type') + ':</label></td>');
+        document.write('<td>');
+        document.write('<select name="privacylist_type" id="privacylist_type" class="xcSelect" onChange="xcSetValue(this.value, \'privacylist_value\', \'privacylist_value_td\');">');
+        document.write('<option value="" selected>' + pWin.xcT('All') + '</option>');
+        document.write('<option value="group">' + pWin.xcT('Group') + '</option>');
+        document.write('<option value="jid">' + pWin.xcT('Chat ID') + '</option>');
+        document.write('<option value="subscription">' + pWin.xcT('Subscription') + '</option>');
+        document.write('</select>');
+       </script>
+     </tr>
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_value" id="privacylist_value_lbl">' + pWin.xcT('Value') + ':</label></td>');
+      </script>
+      <td id="privacylist_value_td">All <input type="hidden" id="privacylist_value" value="" /></td>
+     </tr>
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_action" id="privacylist_action_lbl" title="' + pWin.xcT('What to do when the list is matched') + '">' + pWin.xcT('Action') + ': <font color="red"><sup>(*)</sup></font></label></td>');
+        document.write('<td>');
+        document.write('<select name="privacylist_action" id="privacylist_action" class="xcSelect">');
+        document.write('<option value="allow" selected>' + pWin.xcT('Allow') + '</option>');
+        document.write('<option value="deny">' + pWin.xcT('Deny') + '</option>');
+        document.write('</select>');
+        document.write('</td>');
+      </script>
+     </tr>
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_order" id="privacylist_order_lbl" title="' + pWin.xcT('Precedence') + '">' + pWin.xcT('Order') + ': <font color="red"><sup>(*)</sup></font></label></td>');
+      </script>
+      <td><input type="text" id="privacylist_order" value="" size="20" class="xcInput" /></td>
+     </tr>
+     <tr>
+      <script type="text/javascript">
+        document.write('<td><label for="privacylist_stanza" id="privacylist_stanza_lbl" title="">' + pWin.xcT('Stanza') + ':</label></td>');
+        document.write('<td>');
+        document.write('<select name="privacylist_stanza" id="privacylist_stanza" class="xcSelect">');
+        document.write('<option value="all" selected>' + pWin.xcT('All') + '</option>');
+        document.write('<option value="iq">' + pWin.xcT('Information Packets') + '</option>');
+        document.write('<option value="message">' + pWin.xcT('Message Packets') + '</option>');
+        document.write('<option value="presence-in">' + pWin.xcT('Receiving Presence Packets') + '</option>');
+        document.write('<option value="presence-out">' + pWin.xcT('Sending Presence Packets') + '</option>');
+        document.write('</select>');
+        document.write('</td>');
+      </script>
+     </tr>
+     <tr>
+      <td colspan="2" align="center">
+       <script type="text/javascript">
+         document.write('<input type="submit" id="privacylist_add_button" value="' + pWin.xcT('Add') + '" class="xcButton" />');
+         document.write('<input type="button" id="privacylist_back_button" value="' + pWin.xcT('Back') + '" class="xcButton" onClick="JQ(\'#privacylist_new_list\').hide(\'slow\'); JQ(\'#privacylist_list\').show(\'slow\');" />');
+       </script>
+      </td>
+     </tr>
+    </table>
+    </fieldset>
+    <div>
+     <script type="text/javascript">
+       document.write('<font color="red"><sup>(*)</sup></font> ' + pWin.xcT('Required fields'));
+     </script>
+    </div>
+   </form>
+  </div>
+  <div id="privacylist_list">
+   <form id="privacylist_form" name="privacylist_form">
+    <script type="text/javascript">
+      document.write('<div id="privacylist_new_button"><input type="button" name="addbutton" id="addbutton" class="xcButton" value="' + pWin.xcT('New') + '" onClick="JQ(\'#privacylist_list\').hide(\'slow\'); JQ(\'#privacylist_new_list\').show(\'slow\');" /></div>');
+    </script>
+    <fieldset>
+    <script type="text/javascript">
+      document.write('<legend>' + pWin.xcT('Client Privacy Lists') + '</legend>');
+    </script>
+    <table id="privacylist_tbl" width="100%" border="0" cellspacing="0" cellpadding="2">
+     <tr id="privacylist_tbl_header">
+      <script type="text/javascript">
+        document.write('<th id="privacylist_tbl_header_name" style="border: 1px solid black;">' + pWin.xcT('Name') + '</th>');
+        document.write('<th id="privacylist_tbl_header_active" style="border: 1px solid black;">' + pWin.xcT('Active') + '</th>');
+        document.write('<th id="privacylist_tbl_header_default" style="border: 1px solid black;">' + pWin.xcT('Default') + '</th>');
+        document.write('<th id="privacylist_tbl_header_action" style="border: 1px solid black;">' + pWin.xcT('Action') + '</th>');
+      </script>
+     </tr>
+    </table>
+    </fieldset>
+   </form>
+  </div>
+  <div id="privacylist_info" style="display: none;">
+   <form id="privacylist_info_form" name="privacylist_info_form">
+    <fieldset>
+    <script type="text/javascript">
+      document.write('<legend id="privacylist_info_title">' + pWin.xcT('Privacy List Name Information') + '</legend>');
+    </script>
+    <table id="privacylist_info_tbl" width="100%" border="1" cellspacing="0" cellpadding="2">
+     <tr>
+      <script type="text/javascript">
+        document.write('<th>' + pWin.xcT('Type') + '</th>');
+        document.write('<th>' + pWin.xcT('Value') + '</th>');
+        document.write('<th>' + pWin.xcT('Action') + '</th>');
+        document.write('<th>' + pWin.xcT('Order') + '</th>');
+        document.write('<th>' + pWin.xcT('Stanza') + '</th>');
+        document.write('<th>' + pWin.xcT('Action') + '</th>');
+      </script>
+     </tr>
+     <tr>
+      <th>
+       <select name="privacylist_info_form_type" id="privacylist_info_form_type" class="xcSelect" onChange="xcSetValue(this.value, 'privacylist_info_form_value', 'privacylist_info_form_value_td');">
+       <script type="text/javascript">
+        document.write('<option value="" selected>' + pWin.xcT('All') + '</option>');
+        document.write('<option value="group">' + pWin.xcT('Group') + '</option>');
+        document.write('<option value="jid">' + pWin.xcT('Chat ID') + '</option>');
+        document.write('<option value="subscription">' + pWin.xcT('Subscription') + '</option>');
+       </script>
+       </select>
+      </th>
+      <th id="privacylist_info_form_value_td">
+       <script type="text/javascript">
+         document.write(pWin.xcT('All') + ' <input type="hidden" id="privacylist_info_form_value" value="" />');
+       </script>
+      </th>
+      <th>
+       <select name="privacylist_info_form_action" id="privacylist_info_form_action" class="xcSelect">
+        <script type="text/javascript">
+          document.write('<option value="allow" selected>' + pWin.xcT('Allow') + '</option>');
+          document.write('<option value="deny">' + pWin.xcT('Deny') + '</option>');
+        </script>
+       </select>
+      </th>
+      <th>
+       <input type="text" id="privacylist_info_form_order" value="" size="20" class="xcInput" />
+      </th>
+      <th>
+       <select name="privacylist_info_form_stanza" id="privacylist_info_form_stanza" class="xcSelect">
+       <script type="text/javascript">
+        document.write('<option value="all" selected>' + pWin.xcT('All') + '</option>');
+        document.write('<option value="iq">' + pWin.xcT('Information Packets') + '</option>');
+        document.write('<option value="message">' + pWin.xcT('Message Packets') + '</option>');
+        document.write('<option value="presence-in">' + pWin.xcT('Receiving Presence Packets') + '</option>');
+        document.write('<option value="presence-out">' + pWin.xcT('Sending Presence Packets') + '</option>');
+       </script>
+       </select>
+      </th>
+      <th>
+      <script type="text/javascript">
+       document.write('<input type="button" id="privacylist_info_form_addbutton" name="privacylist_info_form_addbutton" value="' + pWin.xcT('Add') + '" class="xcButton" onClick="xcPrivacyListAddItem(this.form.privacylist_info_form_type.value, this.form.privacylist_info_form_value.value, this.form.privacylist_info_form_action.value, this.form.privacylist_info_form_order.value, this.form.privacylist_info_form_stanza.value);" />');
+      </script>
+      </th>
+     </tr>
+    </table>
+    </fieldset>
+    <input type="hidden" id="privacylist_info_form_name" value="" />
+   </form>
+  </div>
+ </body>
+</html>

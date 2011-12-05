@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Group Chat</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/jsextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="muc_config.js"></script>
+</head>
+<body id="xcMUCConfig">
+  <div id="xcChat">
+
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+        <h1>
+         <script type="text/javascript">
+           document.write(pWin.xcT('Group Chat Configuration'));
+         </script>
+        </h1>
+        <a href="#" onclick="window.close()" class="close right">Close</a>
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcContent">
+
+        <div id="xcMUCRoom">
+          <form id="muc_config_form" name="muc_config_form">
+            <script type="text/javascript">
+              var str = '<div class="xcFieldWrapper text_field">' +
+                        '<label for="server" id="server_lbl" class="xcLabel" title="' + pWin.xcT('Conference Server to search for group chat rooms') + '">' + pWin.xcT('Server') + ':</label>' +
+                        '<input type="text" id="server" value="" class="xcInput" />' +
+                        '<div><input type="button" id="roomlist_button" value="' + pWin.xcT('Get Rooms') + '" class="xcButton" onClick="xcGetRooms(this.form.server.value);" /></div>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper text_field">' +
+                        '<label for="nickname" id="nickname_lbl" class="xcLabel" title="' + pWin.xcT('Nickname you wish to use when entering the room') + '">' + pWin.xcT('Nickname') + ':</label>' +
+                        '<input type="text" id="nickname" value="" class="xcInput" />' +
+                        '</div>';
+              document.write(str);
+            </script>
+
+            <div id="xcMUCRoomHeader">
+
+              <div id="xcMUCRoomHeaderName">
+                <script type="text/javascript">
+                  document.write(pWin.xcT('Room'));
+                </script>
+              </div>
+
+              <div id="xcMUCRoomHeaderDescription">
+                <script type="text/javascript">
+                  document.write(pWin.xcT('Description'));
+                </script>
+              </div>
+
+            </div>
+
+            <div id="xcFormButtons">
+              <div class="xcFieldWrapper button xcSubmit">
+                <script type="text/javascript">
+                document.write('<input type="button" id="enter_button" value="' + pWin.xcT('Enter') + '" class="xcButton" onClick="xcEnterRoom(this.form.room.value, this.form.nickname.value);" />');
+                document.write('<input type="button" id="info_button" value="' + pWin.xcT('Info') + '" class="xcButton" onClick="xcGetRoomInfo(this.form.room.value);" />');
+                document.write('<input type="button" id="occupants_button" value="' + pWin.xcT('Occupants') + '" class="xcButton" onClick="xcGetRoomUsers(this.form.room.value);" />');
+                document.write('<input type="button" id="create_button" value="' + pWin.xcT('Create') + '" class="xcButton" onClick="xcCreateRoomShowForm();" />');
+                document.write('<input type="button" id="remove_button" value="' + pWin.xcT('Remove') + '" class="xcButton" onClick="xcDestroyRoom(this.form.room.value);" />');
+                </script>
+              </div>
+            </div>
+
+            <input type="hidden" id="room" value="" />
+
+          </form>
+
+        </div>
+
+        <div id="xcMUCCreateRoom">
+          <form id="create_muc_room" name="create_muc_room">
+            <script type="text/javascript">
+              var str = '<div class="xcFieldWrapper text_field">' +
+                        '<label for="roomname" id="roomname_lbl" class="xcLabel" title="' + pWin.xcT('Group Chat Room Name') + '">' + pWin.xcT('Room Name') + ':</label>' +
+                        '<input type="text" id="roomname" value="" class="xcInput" />' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper button xcSubmit">' +
+                        '<input type="button" id="room_create_button" value="' + pWin.xcT('Create') + '" class="xcButton" onClick="xcCreateRoom(this.form.create_room_server.value, this.form.roomname.value, this.form.create_room_nickname.value);" />' +
+                        '<input type="button" id="room_back_button" value="' + pWin.xcT('Back') + '" class="xcButton" onClick="JQ(\'#xcMUCCreateRoom\').hide(); JQ(\'#xcMUCRoom\').show();" />' +
+                        '</div>';
+              document.write(str);
+            </script>
+            <input type="hidden" id="create_room_server" value="" />
+            <input type="hidden" id="create_room_nickname" value="" />
+          </form>
+        </div>
+
+      </div>
+
+      <div id="msg" class="xcMessage"></div>
+    </div>
+
+    <div id="xcFooterContainer">
+      <div id="xcFooter">
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

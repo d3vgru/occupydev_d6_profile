@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC  "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Chat Configuration</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+    function xcPreloadForms() {
+      JQ(':checkbox').each(function() {
+        if (pWin.XC[this.id] == 1) { this.checked = true; };
+      });
+      // setting the select boxes with the correct values
+      JQ('#xcfontsize').val(pWin.XC.xcfontsize);
+      JQ('#locale').val(pWin.XC.locale);
+      JQ('#xc_translation_lge').val(pWin.XC.xc_translation_lge);
+    };
+
+    function xcWinReload() {
+      var str = xcDrawConfiguration();
+      JQ('#xcWorkspace').html(str);
+      xcPreloadForms();
+    };
+    // setting the inital values for the parameters
+    JQ(document).ready(function() { xcPreloadForms(); });
+    /**
+     * Setting default action for the screen when a user is on it
+     */
+    JQ(document).keydown(function(e) {
+      var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+      if (keycode == 13) {
+        window.close(); // enter key pressed
+        return false;
+      };
+      return true;
+    });
+
+    JQ(window).unload(function(){
+      try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+    });
+  </script>
+</head>
+<body id="xcConfiguration">
+  <div id="xcChat">
+
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+        <h1>Settings</h1>
+        <a href="#" onclick="window.close()" class="close right">Close</a>
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcContent">
+        <div id="msg" class="xcMessage"></div>
+        <div id="xcWorkspace"></div>
+      </div>
+    </div>
+
+    <div id="xcFooterWrapper">
+      <div id="xcFooter">
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function xcDrawConfiguration() {
+      JQ('div#xcHeader h1').html(pWin.xcT('Settings'));
+      var str = '<form name="configuration_form">' +
+                '<fieldset>' +
+                '<legend>' + pWin.xcT('Chat Configuration') + '</legend>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_archive" id="xc_archive" value="1" onClick="pWin.xcAutoArchiveUpdate((this.checked ? 1 : 0));" />' +
+                '<label for="xc_archive" id="xc_archive_lbl" class="xcLabel" title="' + pWin.xcT('Client will automatically have the server store your chats if the server supports this') + '">' + pWin.xcT('Automatically Archive Chats on the server') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_emptygroups" id="xc_emptygroups" value="1" onClick="pWin.xcToggleEmptyGroups((this.checked ? 1 : 0));" />' +
+                '<label for="xc_emptygroups" id="xc_emptygroups_lbl" class="xcLabel" title="' + pWin.xcT('Client will display empty groups if you check this') + '">' + pWin.xcT('Show Empty Groups') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_showoffline" id="xc_showoffline" value="1" onClick="pWin.xcRosterToggleOffline((this.checked ? 1 : 0));" />' +
+                '<label for="xc_showoffline" id="xc_showoffline_lbl" class="xcLabel" title="' + pWin.xcT('Client will display offline users if you check this') + '">' + pWin.xcT('Show Offline Associates') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_sendbutton" id="xc_sendbutton" value="1" onClick="pWin.xcToggleSendButton((this.checked ? 1 : 0));" />' +
+                '<label for="xc_sendbutton" id="xc_sendbutton_lbl" class="xcLabel" title="' + pWin.xcT('Client will display Send buttons in chat and group chat windows if you check this') + '">' + pWin.xcT('Show Send Buttons on Message and Group Chat') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_showtimestamps" id="xc_showtimestamps" value="1" onClick="pWin.xcToggleShowTimestamp((this.checked ? 1 : 0));" />' +
+                '<label for="xc_showtimestamps" id="xc_showtimestamps_lbl" class="xcLabel" title="' + pWin.xcT('Client will show timestamps in conversations if this is checked') + '">' + pWin.xcT('Show Timestamps in Chat Windows') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper select">' +
+                '<label for="xcfontsize" id="xcfontsize_lbl" class="xcLabel" title="' + pWin.xcT('Alter the size of the fonts the client utilizes') + '">' + pWin.xcT('Client font size') +'</label>' +
+                '<select name="xcfontsize" id="xcfontsize" size="1" onChange="pWin.xcFontSize(this.value);" class="xcSelect">' +
+                '<option value="client.small.css">' + pWin.xcT('Small') + '</option>' +
+                '<option value="client.css">' + pWin.xcT('Normal') + '</option>' +
+                '<option value="client.large.css">' + pWin.xcT('Large') + '</option>' +
+                '</select>' +
+                '</div>' +
+                '</fieldset>' +
+                '<fieldset>' +
+                '<legend>' + pWin.xcT('Locale Configuration') + '</legend>' +
+                '<div class="xcFieldWrapper select">' +
+                '<label for="locale" id="locale_lbl" class="xcLabel" title="' + pWin.xcT('Language with which to display the client') + '">' + pWin.xcT('Language Setting for Client') + ': </label>' +
+                '<select name="locale" id="locale" size="1" onChange="pWin.xcGetLocale(this.value);" class="xcSelect">' +
+                '<option value="ar">' + pWin.xcT('Arabic') + ' (Arabic)</option>' +
+                '<option value="ch">' + pWin.xcT('Chinese') + ' (Chinese)</option>' +
+                '<option value="nl">' + pWin.xcT('Dutch') + ' (Dutch)</option>' +
+                '<option value="en">' + pWin.xcT('English') + ' (English)</option>' +
+                '<option value="fi">' + pWin.xcT('Finnish') + ' (Finnish)</option>' +
+                '<option value="fr">' + pWin.xcT('French') + ' (French)</option>' +
+                '<option value="de">' + pWin.xcT('German') + ' (German)</option>' +
+                '<option value="hu">' + pWin.xcT('Hungarian') + ' (Hungarian)</option>' +
+                '<option value="it">' + pWin.xcT('Italian') + ' (Italian)</option>' +
+                '<option value="ko">' + pWin.xcT('Korean') + ' (Korean)</option>' +
+                '<option value="lt">' + pWin.xcT('Lithuanian') + ' (Lithuanian)</option>' +
+                '<option value="pt-pt">' + pWin.xcT('Portuguese') + ' (Portuguese)</option>' +
+                '<option value="ro">' + pWin.xcT('Romanian') + ' (Romanian)</option>' +
+                '<option value="ru">' + pWin.xcT('Russian') + ' (Russian)</option>' +
+                '<option value="es">' + pWin.xcT('Spanish') + ' (Spanish)</option>' +
+                '<option value="tk">' + pWin.xcT('Turkish') + ' (Turkish)</option>' +
+                '</select>' +
+                '</div>' +
+                '</fieldset>' +
+                '<fieldset>' +
+                '<legend>' + pWin.xcT('Real-time Translation Configuration') + '</legend>' +
+                '<div class="xcFieldWrapper checkbox">' +
+                '<input type="checkbox" name="xc_translation" id="xc_translation" value="1" onClick="pWin.xcToggleRealtimeTranslation((this.checked ? 1 : 0));" />' +
+                '<label for="xc_translation" id="xc_translation_lbl" class="xcLabel" title="' + pWin.xcT('Client will translate messages in real time using CCL+') + '">' + pWin.xcT('Real-time Chat Translation') + '</label>' +
+                '</div>' +
+                '<div class="xcFieldWrapper select">' +
+                '<label for="xc_translation_lge" id="xc_translation_lge_lbl" class="xcLabel" title="' + pWin.xcT('Language that messages will be translated into, and the Language you will be sending messages to other people') + '">' + pWin.xcT('Current chat language') + ': </label>' +
+                '<select name="xc_translation_lge" id="xc_translation_lge" size="1" onChange="pWin.xcSetTranslationLanguage(this.value);" class="xcSelect">' +
+                '<option value="nl">' + pWin.xcT('Dutch') + ' (Dutch)</option>' +
+                '<option value="en">' + pWin.xcT('English') + ' (English)</option>' +
+                '<option value="fr">' + pWin.xcT('French') + ' (French)</option>' +
+                '<option value="de">' + pWin.xcT('German') + ' (German)</option>' +
+                '<option value="he">' + pWin.xcT('Hebrew') + ' (Hebrew)</option>' +
+                '<option value="it">' + pWin.xcT('Italian') + ' (Italian)</option>' +
+                '<option value="ko">' + pWin.xcT('Korean') + ' (Korean)</option>' +
+                '<option value="pl">' + pWin.xcT('Polish') + ' (Polish)</option>' +
+                '<option value="pt">' + pWin.xcT('Portuguese') + ' (Portuguese)</option>' +
+                '<option value="ru">' + pWin.xcT('Russian') + ' (Russian)</option>' +
+                '<option value="es">' + pWin.xcT('Spanish') + ' (Spanish)</option>' +
+                '<option value="zh">' + pWin.xcT('Simplified Chinese') + ' (Simplified Chinese)</option>' +
+                '</select>' +
+                '</div>' +
+                '</fieldset>' +
+                '</form>';
+      return str;
+    }
+    var str = xcDrawConfiguration();
+    JQ('#xcWorkspace').html(str);
+   </script>
+ </body>
+</html>

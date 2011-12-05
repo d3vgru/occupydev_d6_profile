@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Group Chat</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="jqueryplugins/jquery-ui-personalized-1.5.2.min.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/jsextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="muc.js"></script>
+</head>
+<body id="xcMUC" class="chat">
+  <div id="xcChat">
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+
+        <div id="xcMUCRoomInfo">
+          <div class="xcMUCRoomName" id="roomname"></div>
+
+          <script type="text/javascript">
+            document.write('<span id="xcMUCRoomSubject"><em>' + pWin.xcT('No Subject') + '</em></span>');
+          </script>
+          <span class="xcMUCRoomSubjectToggle">
+          <script type="text/javascript">
+            document.write('<a href="#" onclick="xcToggleRoomSubjectEditor()" id="xcMUCRoomSubjectToggle">' + pWin.xcT('Change') + '</a>');
+          </script>
+          </span>
+        </div>
+
+        <ul class="xcLinks">
+          <li id="xcSaveChatLogLink">
+           <script type="text/javascript">
+            document.write('<a href="#" id="post_button" onclick="xcPostMUCChat();">' + pWin.xcT('Save Chat Log') + '</a>');
+           </script>
+          </li>
+          <li id="xcCloseLink">
+            <a href="#" onclick="window.close()" class="close">Close</a>
+          </li>
+        </ul>
+
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div id="xcMUCRoomSubjectEditor" class="xcDrawer" style="display:none;">
+        <input type="text" id="subject" size="20" class="xcInput" />
+      </div>
+
+      <div id="xcMUCInviteForm" class="xcDrawer" style="display:none;">
+        <form id="userinvite" name="userinvite">
+         <script type="text/javascript">
+          document.write('<div class="xcTitle">' + pWin.xcT('Invite user to join this chat') + ':</div>');
+         </script>
+          <div class="xcFieldWrapper text_field">
+            <script type="text/javascript">
+              document.write('<label for="searchjid" id="searchjid_lbl" class="xcLabel" title="' + pWin.xcT('Users Chat ID you wish to invite') + '">' + pWin.xcT('Chat ID') + ': </label>');
+              document.write('<input type="text" id="searchjid" size="50" value="john.doe@' + pWin.XC.domain + '" class="xcInput xcAutoClear" />');
+            </script>
+          </div>
+
+          <div class="xcFieldWrapper text_field">
+           <script type="text/javascript">
+            document.write('<label for="imessage" id="imessage_lbl" class="xcLabel" title="' + pWin.xcT('Invite text to be displayed to the user when they receive the invite') + '">' + pWin.xcT('Message') + ': </label>');
+           </script>
+            <input type="text" id="imessage" size="50" class="xcInput" />
+          </div>
+
+          <div class="xcFieldWrapper button">
+            <input type="button" id="invite_button" name="invite_button" value="Send Invite" class="xcButton" onClick="xcInviteUser(this.form.searchjid.value, this.form.imessage.value);" />
+            <span class="xcFormCancel">or <a href="#" id="cancel_button" onClick="JQ('#xcMUCInviteForm').slideToggle('fast'); JQ('#searchjid').addClass('xcAutoClear').val('john.doe@' + pWin.XC.domain); JQ('#imessage').val('');">Cancel</a></span>
+          </div>
+          <script type="text/javascript">
+            JQ(document).ready(function() {
+              JQ('form#userinvite input#invite_button').val(pWin.xcT('Send Invite'));
+              JQ('span.xcFormCancel a#cancel_button').html(pWin.xcT('Cancel'));
+            });
+          </script>
+          <a href="#" id="search_button" onClick="xcMUCSearchForm(); JQ('#xcUserCurrentContactsDiv').html('');">Search for users</a>
+        </form>
+        <div id="xcUserCurrentContactsDiv"></div>
+        <div id="xcUserSearchDiv"></div>
+      </div>
+
+      <div id="xcContent">
+        <div id="workspace" class="xcWorkspace">
+
+          <div id="xcMUCMessages" class="xcAutoResize" onscroll="xcScrollSave(this.scrollTop);">
+            <div class="xcInnerPadding">
+              <div id="msg_pane" class="xcMUCMsgPane"></div>
+            </div>
+          </div>
+
+          <div id="xcMUCOccupants" class="xcAutoResize">
+            <div class="xcInnerPadding">
+              <h3 class="clearfix">
+              <script type="text/javascript">
+                document.write('<span>' + pWin.xcT('Participants') + '</span>');
+              </script>
+                <a href="#" id="invite_button" onClick="xcUserOnlineContacts(); JQ('#xcMUCInviteForm').slideToggle('fast');">Invite</a>
+              </h3>
+              <script type="text/javascript">
+                JQ(document).ready(function() {
+                  JQ('a#invite_button').html(pWin.xcT('Invite'));
+                });
+              </script>
+              <div id="muc_occupants" class="xcMUCOccupants"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="msg" class="xcMessage"></div>
+    </div>
+
+    <div id="xcFooterWrapper">
+      <div id="xcFooter">
+
+        <div id="xcMsgContainer" class="clearfix">
+          <form name="msgForm" onSubmit="xcMsgSend();" action="javascript:;">
+            <script type="text/javascript">
+              if (pWin.XC.xc_sendbutton == 1) {
+                document.write('<div style="position: absolute; top: 5px; right: 5px;"><input type="submit" id="submit_button" name="submit_button" value="' + pWin.xcT('Send') + '" class="xcButton xcMsgSendButton" /></div>');
+              };
+            </script>
+            <textarea name="mbody" id="mbody" class="xcMsgBody xcMUCMsgBody"></textarea>
+            <input type="hidden" name="jid" id="jid" />
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="xcContextMenu" id="xcRightMenu" oncontextmenu="return false;">
+    <ul oncontextmenu="return false;">
+     <script type="text/javascript">
+      document.write('<li id="ban" oncontextmenu="return false;">' + pWin.xcT('Ban') + '</li>');
+      document.write('<li id="chat" oncontextmenu="return false;">' + pWin.xcT('Chat') + '</li>');
+      document.write('<li id="info" oncontextmenu="return false;">' + pWin.xcT('Info') + '</li>');
+      document.write('<li id="kick" oncontextmenu="return false;">' + pWin.xcT('Kick') + '</li>');
+      document.write('<li id="subscribe" oncontentmenu="return false;">' + pWin.xcT('Subscribe') + '</li>');
+     </script>
+    </ul>
+  </div>
+
+ </body>
+</html>

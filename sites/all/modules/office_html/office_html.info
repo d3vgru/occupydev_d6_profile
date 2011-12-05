@@ -1,0 +1,11 @@
+; $Id: office_html.info,v 1.1 2009/11/19 15:42:51 danepowell Exp $
+name = Office HTML Filter
+description = Comments out Microsoft Office-generated HTML so it can be stripped by the HTML filter
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-19
+version = "6.x-1.1"
+core = "6.x"
+project = "office_html"
+datestamp = "1279567815"
+

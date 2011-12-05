@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Group Chat Invitation</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+    var from = JQ(document).getUrlParam('from');
+    var room = JQ(document).getUrlParam('room');
+    var reason = JQ(document).getUrlParam('reason');
+    JQ(document).ready(function() {
+      JQ('form#mucinvite div.xcFieldWrapper span#muc_invite_from').html(from);
+      JQ('form#mucinvite div.xcFieldWrapper span#muc_invite_room').html(room);
+      JQ('form#mucinvite div.xcFieldWrapper span#muc_invite_reason').html(unescape(reason));
+      JQ('form#mucinvite input#room').val(room);
+    });
+    JQ(window).unload(function(){
+     try { pWin.xcWinClose(pWin.xcDec(window.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcMUCInvite">
+
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Group Chat Invitation Received'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="mucinvite" name="mucinvite">
+           <script type="text/javascript">
+             var str = '<div class="xcFieldWrapper"><label>' + pWin.xcT('From') + ':</label> <span id="muc_invite_from"></span></div>' +
+                       '<div class="xcFieldWrapper"><label>' + pWin.xcT('Room') + ':</label> <span id="muc_invite_room"></span></div>' +
+                       '<div class="xcFieldWrapper"><label>' + pWin.xcT('Reason') + ':</label> <span id="muc_invite_reason"></span></div>' +
+                       '<div class="xcFieldWrapper button xcSubmit">' +
+                       '<input type="button" name="accept_button" id="accept_button" value="' + pWin.xcT('Accept') + '" class="xcButton" onClick="pWin.xcMUCInviteLaunch(this.form.room.value, pWin.XC.nickname); window.close();"/>' +
+                       '<input type="button" id="cancel_button" name="cancel_button" value="' + pWin.xcT('Cancel') + '" class="xcButton" onClick="window.close();" />' +
+                       '<input type="hidden" id="room" value="" />' +
+                       '</div>';
+             document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+ </body>
+</html>

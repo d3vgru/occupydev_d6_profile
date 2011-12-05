@@ -1,0 +1,16 @@
+; $Id: xmpp_vcard.info,v 1.1.2.3.2.16 2009/09/25 20:51:05 darrenferguson Exp $
+name = XMPP-VCARD
+package = "XMPP Framework"
+description = Provides the ability to synchronize your xmpp server vcard
+core = 6.x
+dependencies[] = xmpp_user
+dependencies[] = content
+dependencies[] = content_profile
+project = "xmpp"
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

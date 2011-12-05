@@ -1,0 +1,418 @@
+<?php
+// $Id: xmpp_user.module,v 1.1.2.16 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * @file
+ * Module providing an XMPP User Integration for Drupal
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_user_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_user');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides a mapping between drupal and xmpp users');
+      break;
+    case 'admin/help#xmpp_user':
+      $output = '<p>'. t('The xmpp user module allows you to make mappings between users in drupal and users on an external xmpp server') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_user_perm() {
+  return array('administer xmpp user');
+}
+
+/**
+ * Implementation of hook_cron()
+ */
+function xmpp_user_cron() {
+  // update user status if they have been online and last status update is greater than the time limit specified in the module
+  $interval = variable_get('xmpp_user_cron_interval', 1);
+  if (is_null($interval) | !is_numeric($interval)) {
+    variable_set('xmpp_user_cron_interval', 1);
+    $interval = 1;
+  }
+  $time = time() - ($interval * 86400);
+  db_query("UPDATE {xmpp_user} SET status = '%s', message = '%s' WHERE last_access < %d", 'offline', 'offline', $time);
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_user_menu() {
+  $items['admin/xmppframework/user'] = array(
+    'title' => 'User',
+    'description' => 'Configure the xmpp user module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_user_admin_settings'),
+    'access arguments' => array('administer xmpp user'),
+    'file' => 'xmpp_user.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_service().
+ */
+function xmpp_user_service() {
+  return array(
+    array(
+      '#method' => 'xmpp_user.info',
+      '#callback' => 'xmpp_user_service_info',
+      '#file' => array('file' => 'inc', 'module' => 'xmpp_user.service'),
+      '#args' => array(
+        array(
+          '#name' => 'uid',
+          '#type' => 'int',
+          '#description' => t('UID of the user we wish to retrieve the information for'),
+        ),
+      ),
+      '#return' => 'array',
+      '#help' => t('Retrieve the xmpp information stored for this user in Drupal'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_views_api()
+ */
+function xmpp_user_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'xmpp_user'),
+  );
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function xmpp_user_form_alter(&$form, $form_state, $form_id) {
+  if (variable_get('xmpp_user_store_login_password', FALSE)) {
+    switch ($form_id) {
+      case 'user_login':
+      case 'user_login_block':
+        $form['#submit'][] = 'xmpp_user_login_block_submit';
+        break;
+    }
+  }
+}
+
+/**
+ * Retrieve the user password so we can store it
+ */
+function xmpp_user_login_block_submit($form, &$form_state) {
+  if (variable_get('xmpp_user_store_login_password', FALSE)) {
+    global $user;
+    $password = xmpp_user_encrypt_password($form_state['values']['pass']);
+
+    // Updating the user password we have stored in the system so the user can log into the chat client
+    db_query("UPDATE {xmpp_user} SET password = '%s' WHERE uid = %d", $password, $user->uid);
+    if (!db_affected_rows()) {
+      db_query("INSERT INTO {xmpp_user} (uid, password) VALUES (%d, '%s', '%s')", $user->uid, $password);
+    }
+    // if provisioning is enabled this will provision the xmpp account information for the user
+    _xmpp_user_provision_jid($user);
+    // populating the xmpp_user array of the user object
+    $user->xmpp_user = db_fetch_array(db_query("SELECT uid, jid, resource, password, last_access, status, message FROM {xmpp_user} WHERE uid = %d", $user->uid));
+    // if the xmpp_user['jid'] is set we can get the server and user name information from it
+    if (isset($user->xmpp_user['jid'])) {
+      $user->xmpp_user['server'] = _xmpp_user_parse_jid($user->xmpp_user['jid'], FALSE); // domain needed for xmlrpc requests
+      $user->xmpp_user['user_name'] = _xmpp_user_parse_jid($user->xmpp_user['jid'], TRUE); // user_name needed for xmlrpc requests
+    }
+    // If the xmpp client module exists and the client portions are set for launching the client we need to set this variable for it
+    if (module_exists('xmpp_client') && variable_get('xmpp_client_launch', false) && !variable_get('xmpp_client_launch_'. $user->uid, true)) {
+      variable_set('xmpp_client_launch_now_'. $user->uid, true);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_user()
+ */
+function xmpp_user_user($op, &$edit, &$account, $category = NULL) {
+  // We only do updates if the user is not anonymous.
+  if (!empty($account->uid) && $account->uid > 0) {
+    switch ($op) {
+      case 'delete':
+        xmpp_user_delete($edit, $account);
+        break;
+      case 'form':
+        return xmpp_user_form($edit, $account, $category);
+        break;
+      case 'insert':
+        xmpp_user_insert($edit, $account, $category);
+        break;
+      case 'load':
+        xmpp_user_load($account);
+        break;
+      case 'update':
+        xmpp_user_update($edit, $account, $category);
+        break;
+      case 'validate':
+        xmpp_user_validate($edit, $account);
+        break;
+    }
+  }
+}
+
+/**
+ * Builds the form elements for use in the user administration screen
+ */
+function xmpp_user_form($edit, $account, $category = NULL) {
+  $form = array();
+  if ($category == 'account') {
+    $form['xmpp_user'] = array('#type' => 'fieldset', '#title' => t('XMPP User'), '#tree' => TRUE, '#weight' => 2);
+    $form['xmpp_user']['jid'] = array(
+      '#type' => 'textfield',
+      '#title' => t('JID'),
+      '#default_value' => $account->xmpp_user['jid'],
+      '#description' => t('Enter your full JID (i.e. user@server.com) here'),
+    );
+    // Only display if the administrator is allowing the users to alter their password
+    $form['xmpp_user']['password'] = array(
+      '#type' => 'password',
+      '#title' => t('Password'),
+      '#default_value' => '',
+      '#description' => t('Change your xmpp password'),
+      '#access' => variable_get('xmpp_user_password_field', FALSE),
+    );
+    // Only display if the administrator is allowing the users to alter their resource
+    $form['xmpp_user']['resource'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Resource'),
+      '#default_value' => $account->xmpp_user['resource'],
+      '#description' => t('Resource that the user will be known as on the xmpp server i.e. Home, Work, Laptop etc'),
+      '#access' => variable_get('xmpp_user_resource_field', FALSE),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Load the user information into the user variable
+ */
+function xmpp_user_load(&$account) {
+  if (!(db_result(db_query("SELECT COUNT(uid) FROM {xmpp_user} WHERE uid = %d", $account->uid)))) {
+    // if the user is not already in the table create the user then we can preload the object
+    db_query("INSERT INTO {xmpp_user} (uid, resource) VALUES (%d, '%s')", $account->uid, $account->name);
+  }
+  // populating the xmpp_user array of the user object
+  $account->xmpp_user = db_fetch_array(db_query("SELECT uid, jid, resource, password, last_access, status, message FROM {xmpp_user} WHERE uid = %d", $account->uid));
+  // setting the resource initially if it is not set so we do not have to continually check for it
+  if (is_null($account->xmpp_user['resource']) || !drupal_strlen($account->xmpp_user['resource'])) {
+    db_query("UPDATE {xmpp_user} SET resource = '%s' WHERE uid = %d", $account->name, $account->uid);
+    $account->xmpp_user['resource'] = $account->name;
+  }
+  // if the xmpp_user['jid'] is set we can get the server and user name information from it
+  if (isset($account->xmpp_user['jid']) && !is_null($account->xmpp_user['jid']) && drupal_strlen($account->xmpp_user['jid'])) {
+    $account->xmpp_user['server'] = _xmpp_user_parse_jid($account->xmpp_user['jid'], FALSE);
+    $account->xmpp_user['user_name'] = _xmpp_user_parse_jid($account->xmpp_user['jid'], TRUE);
+  }
+}
+
+/**
+ * Remove the user information from the system, if the account is deleted
+ */
+function xmpp_user_delete($edit, $account) {
+  // remove the user from the xmpp server if the xmppframework exists
+  if (module_exists('xmppframework') && function_exists('xmppframework_delete_account')) {
+    $host = $account->xmpp_user['server'];
+    if (variable_get('xmpp_user_provisioning_on', false) && drupal_strlen(variable_get('xmpp_user_provisioning_server', ''))) {
+      $host = variable_get('xmpp_user_provisioning_server', '');
+    }
+    // Retrieve the user password from the account
+    $password = xmpp_user_get_password($account);
+    if (is_null($password)) {
+      $password = xmpp_user_decrypt_password(db_result(db_query("SELECT password FROM {xmpp_user} WHERE uid = %d", $account->uid)));
+    }
+    $conn = xmppframework_get_admin_connection();
+    if ($conn !== FALSE) {
+      $result = xmppframework_delete_account($account->name, $host, $password, $conn);
+      if ($result !== TRUE) {
+        watchdog('xmpp_user', 'Could not remove @user from the xmpp server', array('@user' => $account->name), WATCHDOG_ERROR);
+      }
+      xmppframework_release_connection($conn);
+    }
+    else {
+      watchdog('xmpp_user', 'Could not create an administrative connection to the xmpp server', array(), WATCHDOG_ERROR);
+    }
+  }
+  // removing the user from the xmpp_user user table
+  db_query("DELETE FROM {xmpp_user_properties} WHERE uid = %d", $account->uid);
+  db_query("DELETE FROM {xmpp_user} WHERE uid = %d", $account->uid);
+}
+
+/**
+ * Add the user information to the system, if the account is created
+ */
+function xmpp_user_insert($edit, $account, $category = NULL) {
+  if ($category == 'account') {
+    $password = xmpp_user_encrypt_password($edit['pass']);
+    db_query("UPDATE {xmpp_user} SET password = '%s', resource = '%s', status = '%s', message = '%s' WHERE uid = %d", $password, $edit['name'], 'offline', 'offline', $edit['uid']);
+    if (!db_affected_rows()) {
+      db_query("INSERT INTO {xmpp_user} (uid, password, resource, status, message) VALUES (%d, '%s', '%s','%s', '%s')", $edit['uid'], $password, $edit['name'], 'offline', 'offline');
+    }
+    _xmpp_user_provision_jid($edit);
+  }
+}
+
+/**
+ * Update the user information in the system, if the account is updated
+ */
+function xmpp_user_update($edit, $account, $category = NULL) {
+  if ($category == 'account' && isset($edit['xmpp_user']['jid'])) {
+    $resource = $account->xmpp_user['resource'];
+    if (isset($edit['xmpp_user']['resource']) && !is_null($edit['xmpp_user']['resource']) && drupal_strlen($edit['xmpp_user']['resource'])) {
+      $resource = $edit['xmpp_user']['resource'];
+    }
+    // If user updates their password from the user edit form we should update the xmpp one
+    if (isset($edit['pass']) && !is_null($edit['pass']) && drupal_strlen($edit['pass'])) {
+      $password = xmpp_user_encrypt_password($edit['pass']);
+      db_query("UPDATE {xmpp_user} SET jid = '%s', resource = '%s', password = '%s' WHERE uid = %d", $edit['xmpp_user']['jid'], $resource, $password, $account->uid);
+    }
+    elseif (isset($edit['xmpp_user']['password']) && !is_null($edit['xmpp_user']['password']) && drupal_strlen($edit['xmpp_user']['password'])) {
+      $password = xmpp_user_encrypt_password($edit['xmpp_user']['password']);
+      db_query("UPDATE {xmpp_user} SET jid = '%s', resource = '%s', password = '%s' WHERE uid = %d", $edit['xmpp_user']['jid'], $resource, $password, $account->uid);
+    }
+    elseif (strcmp($resource, $account->xmpp_user['resource'])) {
+      db_query("UPDATE {xmpp_user} SET jid = '%s', resource = '%s' WHERE uid = %d", $edit['xmpp_user']['jid'], $resource, $account->uid);
+    }
+    else {
+      db_query("UPDATE {xmpp_user} SET jid = '%s' WHERE uid = %d", $edit['xmpp_user']['jid'], $account->uid);
+    }
+    // setting the name here so it will change in the provisioning instead of the original name
+    // since we are calling with the true variable set it will always make sure it updates the information
+    // will only call if the information is actually available to us i.e. there is a name in the edit array
+    if (isset($edit['name']) && drupal_strlen($edit['name'])) {
+      $account->name = $edit['name'];
+    }
+    _xmpp_user_provision_jid($account, TRUE);
+  }
+}
+
+/**
+ * Validates the form input from the administration screen elements
+ */
+function xmpp_user_validate($edit, $account) {
+  if (isset($edit['xmpp_user']['jid']) && !is_null($edit['xmpp_user']['jid']) && drupal_strlen($edit['xmpp_user']['jid'])) {
+    if (!(eregi("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$", $edit['xmpp_user']['jid']))) {
+      form_set_error('jid', 'Invalid JID was entered, should be in the form name@domain i.e. xmpp@xmpp.org');
+    }
+  }
+}
+
+/**
+ * Encrypt the user password for saving in the system
+ */
+function xmpp_user_encrypt_password($password = NULL) {
+  if (!is_null($password) && drupal_strlen($password)) {
+    return strtr($password, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm nopqrstuvwxyz', 'fo2gFeBMQ45Vl3sDp1HGTYbz7vWdikU86taqSPE0muZOj9cKr xRLnJXhwyCIAN');
+  }
+  return NULL;
+}
+
+/**
+ * Decrypt the user password for usage by the system
+ */
+function xmpp_user_decrypt_password($password = NULL) {
+  if (!is_null($password) && drupal_strlen($password)) {
+    return strtr($password, 'fo2gFeBMQ45Vl3sDp1HGTYbz7vWdikU86taqSPE0muZOj9cKr xRLnJXhwyCIAN', '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm nopqrstuvwxyz');
+  }
+  return NULL;
+}
+
+/**
+ * Function to retrieve a user password from the user object
+ * provided or the current global user in the system
+ */
+function xmpp_user_get_password($account = NULL, $decrypt = TRUE) {
+  $password = NULL;
+  if (is_null($account)) {
+    global $user;
+    $account = $user;
+  }
+  // Verify that the user actually has a password associated with their account for xmpp
+  if (isset($account->xmpp_user['password']) && !is_null($account->xmpp_user['password']) && drupal_strlen($account->xmpp_user['password'])) {
+    $password = $account->xmpp_user['password'];
+    if ($decrypt === TRUE) {
+      $password = xmpp_user_decrypt_password($password);
+    }
+  }
+  else {
+    // If nothing re-verify the database table just incase it was missing
+    $password = db_result(db_query("SELECT password FROM {xmpp_user} WHERE uid = %d", $account->uid));
+    if (!is_null($password) && drupal_strlen($password)) {
+      $password = xmpp_user_decrypt_password($password);
+    }
+  }
+  return $password;
+}
+
+/**
+ * Return User ID from the fully qualified Jabber ID received
+ *
+ * @param $jid
+ *  Fully qualified jid including resource
+ *
+ * @return $uid
+ *  User ID
+ */
+function _xmpp_user_uid_from_fulljid($jid = NULL) {
+  if (strpos($jid, '/')) {
+    $jid = substr($jid, 0, strpos($jid, '/'));
+  }
+  return db_result(db_query("SELECT uid FROM {xmpp_user} WHERE jid = '%s'", $jid));
+}
+
+/**
+ * Function returns either the user name or the server for a specific jid given
+ *
+ * @param $jid
+ *      The JID without resource that we will be parsing
+ * @param $user_name
+ *      Boolean if TRUE return the user name portion else return the server portion
+ */
+function _xmpp_user_parse_jid($jid, $user_name = FALSE) {
+  // Doing a check for any / which would mean we received the resource also
+  if (strpos($jid, '/')) {
+    $jid = substr($jid, 0, strpos($jid, '/'));
+  }
+  if ($user_name === TRUE) {
+    return substr($jid, 0, strpos($jid, '@'));
+  }
+  else {
+    return substr($jid, strpos($jid, '@') + 1);
+  }
+}
+
+/**
+ * Function utilized to provision the jid for the user
+ *
+ * @param $user
+ *      The user object we wish to provision for xmpp
+ * @param $update
+ *      Update the jid even if it was previously set
+ */
+function _xmpp_user_provision_jid($user, $update = FALSE) {
+  // casting to object incase we are given an array
+  $user = (object)$user;
+  // doing the pertinent provisioning for the module
+  if (variable_get('xmpp_user_provisioning_on', false) && drupal_strlen(variable_get('xmpp_user_provisioning_server', ''))) {
+    $tjid = db_result(db_query("SELECT jid FROM {xmpp_user} WHERE uid = %d", $user->uid));
+    // checking if the jid is currently set or not, do not wish to overwrite what is there
+    if ((is_null($tjid) || drupal_strlen($tjid)) || $update === TRUE) {
+      $jid = $user->name .'@'. variable_get('xmpp_user_provisioning_server', '');
+      db_query("UPDATE {xmpp_user} SET jid = '%s' WHERE uid = %d", $jid, $user->uid);
+    }
+  }
+}

@@ -1,0 +1,19 @@
+To use this module: 
+
+First, you must download the ProwlPHP class from: 
+
+https://github.com/dordotky/php-prowl
+
+To download it, cd to the libraries directory (sites/all/libraries) and run 
+the following commands:
+
+curl -o prowl.tgz https://download.github.com/dordotky-php-prowl-c3008fc.tar.gz
+tar zxf prowl.tgz
+mv dordotky-php-prowl-c3008fc php-prowl
+
+Once you have installed ProwlPHP, simply go the modules page, enable the module, and then visit
+
+/admin/settings/prowl
+
+To enable storing API keys for each user on your site, enable the prowl user integration module, 
+and then visit the edit page for each user you wish to add a key for.

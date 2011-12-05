@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Add Contact</title>
+   <script type="text/javascript" src="jquery.pack.js"></script>
+   <script type="text/javascript" src="window_manager.js"></script>
+   <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+    /**
+     * Set message information and then activate timeout to clear it
+     * @param {String} msg The message to set
+     * @action sets the message and calls the timeout to clear it
+     */
+    function xcSetMsg(msg, error) {
+      if (JQ('div#msg').children().size() > pWin.XC.LOGSIZE) {
+        JQ('div#msg').children(':first-child').remove();
+      }
+      if (error) {
+        JQ('#msg').addClass('xcError').append('<div>' + msg + '</div>').show();
+      } else {
+        JQ('#msg').removeClass('xcError').append('<div>' + msg + '</div>').show();
+      };
+    };
+
+    /**
+     * Retrieve the form for searching for users
+     */
+    function xcAddUserSearchForm() {
+      var iq = pWin.xcUserSearchForm();
+      if (typeof(iq) == "object") {
+        pWin.con.send(iq, window.xcAddUserSearchFormDisplay);
+      } else {
+        xcSetMsg(iq, true);
+      };
+    };
+
+    /**
+     * Display the Form for searching for users
+     */
+    function xcAddUserSearchFormDisplay(iq) {
+      var html = pWin.xcUserSearchFormVrfy(iq, 'xcAddUserSearch');
+      if (html.substring(0, 6) == "Error:") {
+        xcSetMsg(html, true);
+      } else {
+        JQ('#xcUserSearchDiv').html(html);
+        JQ('#search_close_button').click(function() {
+          JQ('.xcPopup').hide().children('div').html('');
+          JQ('div#xcContent').show();
+        });
+      };
+      return true;
+    };
+
+    /**
+     * Processing the user search form and send results to the server
+     */
+    function xcAddUserSearch() {
+      var iq = pWin.xcUserSearch(JQ('#usersearch'));
+      if (typeof(iq) == "object") {
+        pWin.con.send(iq, window.xcAddUserSearchResults);
+      } else {
+        xcSetMsg(iq, true);
+      };
+    };
+
+    /**
+     * Display the results of the user search query
+     */
+    function xcAddUserSearchResults(iq) {
+      var html = pWin.xcUserSearchVrfy(iq);
+      if (html.substring(0, 6) == "Error:") {
+        xcSetMsg(html, true);
+        return true;
+      };
+      JQ('#xcUserSearchDiv').html(html);
+      // check whether we received search results or not
+      if (JQ('#xcNoUserSearchResults').size() > 0) {
+        JQ('#xcNoUserSearchResults .xcFieldWrapper').prepend('<input type="button" id="research_button" value="Re-Search" class="xcButton" />').removeClass('button');
+        JQ('#xcNoUserSearchResults .xcFieldWrapper input.xcButton').click(function() {
+          if (JQ(this).val() == 'Re-Search') {
+            JQ('div#xcContent').hide();
+            JQ('div.xcPopup').show();
+            xcAddUserSearchForm();
+          } else {
+            JQ('.xcPopup').hide().children('div').html('');
+            JQ('div#xcContent').show();
+          }
+        });
+      } else {
+        JQ('.xcUserSearchSelect').each(function() {
+          var jidspan = JQ(this).parent().siblings('span.xcUserJID');
+          var jid = jidspan.html();
+          jidspan.html(jid.substring(0, jid.indexOf('@')));
+        });
+        JQ('.xcUserSearchSelect').click(function() {
+          JQ('#jid').val(this.id);
+          JQ('.xcPopup').hide().children('div').html('');
+          JQ('div#xcContent').show();
+        });
+      };
+      return true;
+    };
+
+    function xcAddUser() {
+      var jid = JQ('#jid').val();
+      if (typeof(jid) == 'undefined' || jid == '') {
+        xcSetMsg(pWin.xcT('Chat ID required for creating a new associate'), true);
+        return false;
+      };
+      if (jid.indexOf('@') == -1) {
+        xcSetMsg(pWin.xcT('Chat ID should be in the form john.doe@' + pWin.XC.domain ), true);
+        return false;
+      };
+      var name = JQ('#name').val();
+      if (typeof(name) == 'undefined' || name == '') {
+        name = jid;
+      };
+      // New array to hold the user groups
+      var group = new Array();
+      // If we have a new group being created put the user in that group
+      if (other = JQ('#other').val()) {
+        group.push(other);
+      } else {
+        // If no new group is created then we put the user into the selected group
+        JQ('#group option:selected').each(function() {
+          group.push(JQ(this).attr('value'));
+        });
+      }
+      if (group.length == 0) {
+        xcSetMsg(pWin.xcT('Group required for creating a new associate'), true);
+        return false;
+      };
+      pWin.xcUpdateUser(jid, name, group);
+      pWin.xcSendPresenceType(jid, 'subscribe');
+      window.close();
+    };
+
+    // creating the groups on the fly
+    var groups = "<select name='group' id='group' class='xcSelect'>"
+    for (var x = 0; x < pWin.grouplist.length; x++) {
+      groups += "<option value='" + pWin.grouplist[x] + "'>" + pWin.grouplist[x] + "</option>";
+    };
+    // always show the default of General for the group if no other groups exist
+    if (!pWin.grouplist.length) { groups += "<option value='General'>" + pWin.xcT('General') + "</option>"; };
+    groups += "</select>";
+    groups += '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('New group') + '</a>';
+
+    JQ(document).ready(function() {
+      // populating the group select holder with the pertinent information
+      JQ('#group_holder').html(groups);
+      var defaultValue = JQ('#jid').val();
+      JQ('.xcAutoClear').focus(function() {
+        if (this.value == defaultValue) {
+          this.value = '';
+          JQ(this).removeClass('xcAutoClear');
+        }
+      });
+      // Setting the click handler for the message popup
+      JQ('div#msg').click(function() {
+        JQ(this).removeClass('xcError').html('').hide();
+      });
+    });
+
+    function xcToggleNewGroup() {
+      JQ('#xcNewGroup').toggle();
+      JQ('#xcChooseGroup').toggle();
+      JQ('#other').val('');
+    }
+
+    // default action if the enter button is pressed
+    JQ(document).keydown(function(e) {
+      var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+      if (keycode == 13) {
+        if (JQ('.xcPopup').css('display') == 'block') {
+          JQ('#usersearch #search_button').click();
+        } else {
+          xcAddUser(); // enter key pressed
+        };
+        return false;
+      };
+      return true;
+    });
+
+   JQ(window).unload(function(){
+     try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+   });
+  </script>
+</head>
+<body id="xcAddUser">
+  <div id="xcChat">
+    <div id="xcHeaderWrapper">
+      <div id="xcHeader" class="clearfix">
+        <div class="xcTitle" style="float:left">
+          <script type="text/javascript">
+            document.write(pWin.xcT('Add Contact'));
+          </script>
+        </div>
+
+        <ul class="xcLinks right">
+          <li id="xcSearchLink">
+            <script type="text/javascript">
+              document.write('<a href="#" id="search_button" onClick="JQ(\'div#xcContent\').hide(); JQ(\'div.xcPopup\').show(); xcAddUserSearchForm();">' + pWin.xcT('Search') + '</a>');
+            </script>
+          </li>
+          <li id="xcCloseLink">
+            <a href="#" onclick="window.close()" class="close">Close</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="xcWrapper">
+      <div class="xcPopup">
+       <div id="xcUserSearchDiv"></div>
+      </div>
+      <div id="xcContent">
+        <form id="add_user_form" name="add_user_form">
+          <script type="text/javascript">
+            var str = '<div class="xcFieldWrapper text_field">' +
+                      '<label for="jid" id="jid_lbl" class="xcLabel" title="' + pWin.xcT('ID of the associate you wish to add in name@hostname form') + '">' + pWin.xcT('Account name') + ':</label>' +
+                      '<input type="text" id="jid" value="john.doe@' + pWin.XC.domain +'" class="xcInput xcAutoClear" />' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper text_field">' +
+                      '<label for="name" id="name_lbl" class="xcLabel" title="' + pWin.xcT('Alias you wish to display when viewing your associate in your roster') + '">' + pWin.xcT('Display name') + ':</label>' +
+                      '<input type="text" id="name" value="" class="xcInput" />' +
+                      '<em style="color:#777;padding-left:5px;font-size:11px;font-style:italic">' + pWin.xcT('Optional') + '</em>' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper select" id="xcChooseGroup">' +
+                      '<label for="group" id="group_lbl" class="xcLabel" title="' + pWin.xcT('Group / Groups you wish put your associate in') + '">' + pWin.xcT('Group') + ':</label>' +
+                      '<div id="group_holder"></div>' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper text_field" id="xcNewGroup" style="display:none">' +
+                      '<label for="other" id="other_lbl" class="xcLabel" title="' + pWin.xcT('Put associate in group that does not already exist') + '">' + pWin.xcT('New group') + ':</label>' +
+                      '<input type="text" id="other" value="" class="xcInput" />' +
+                      '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('Cancel') + '</a>' +
+                      '</div>' +
+                      '<div class="xcFieldWrapper button xcSubmit">' +
+                      '<input type="button" id="add_button" value="' + pWin.xcT('Add') + '" class="xcButton" onClick="xcAddUser();" />' +
+                      '</div>';
+            document.write(str);
+          </script>
+        </form>
+      </div>
+
+      <div id="msg" class="xcMessage"></div>
+    </div>
+
+    <div id="xcFooterContainer">
+      <div id="xcFooter">
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

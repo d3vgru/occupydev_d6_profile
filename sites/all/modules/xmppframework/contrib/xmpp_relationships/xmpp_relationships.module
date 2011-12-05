@@ -1,0 +1,80 @@
+<?php
+// $Id: xmpp_relationships.module,v 1.1.2.1.2.16 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * @file
+ * Module providing an XMPP Relationships for Drupal
+ */
+
+// Settings for the xmlrpc request portion of the function
+define('XMPP_RELATIONSHIPS_SEND_SUBSCRIPTION_NOTIFICATION', variable_get('xmpp_relationships_send_subscription_notification', false));
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_relationships_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_relationships');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides an xmpp_relationship api for the Web Instance using the user_relationships module');
+      break;
+    case 'admin/help#xmpp_relationships':
+      $output = '<p>'. t('The xmpp_relationship module allows you to have real time user presence and message updates via XMPP') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_relationships_perm() {
+  return array('administer xmpp relationships');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_relationships_menu() {
+  $items['admin/xmppframework/relationships'] = array(
+    'title' => 'Relationships',
+    'description' => 'Configure the xmpp relationships module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_relationships_admin_settings'),
+    'access arguments' => array('administer xmpp relationships'),
+    'file' => 'xmpp_relationships.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_xmlrpc()
+ * First method in array is the return type for the call
+ */
+function xmpp_relationships_xmlrpc() {
+  module_load_include('inc', 'xmpp_relationships', 'xmpp_relationships_xmlrpc');
+  return array(
+    array(
+      'xmpp_relationships.update_presence',
+      'xmpp_relationships_xmlrpc_update_presence',
+      array('boolean', 'string', 'string', 'string'),
+      t('Update a users presence.')),
+  );
+}
+
+/**
+ * Implementation of hook_user_relationships()
+ * Hook is provided by the user_relationships_api module
+ */
+function xmpp_relationships_user_relationships($op, &$relationship) {
+  if (array_search($relationship->rtid, variable_get('xmpp_relationships_user_relationships_types', array()))) {
+    module_load_include('inc', 'xmpp_relationships', 'xmpp_relationships.internal');
+    $function = '_xmpp_relationships_'. $op .'_user_relationship';
+    if (function_exists($function)) {
+      call_user_func($function, $relationship);
+    }
+  }
+}

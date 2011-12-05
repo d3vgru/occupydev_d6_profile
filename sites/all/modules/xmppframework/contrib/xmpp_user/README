@@ -1,0 +1,5 @@
+XMPP User Module
+
+Hooks
+name: hook_xmpp()
+info: retrieve the xmpp api information

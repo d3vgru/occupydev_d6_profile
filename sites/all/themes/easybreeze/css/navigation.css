@@ -1,0 +1,122 @@
+/**
+ * @file
+ * Navigation Styling
+ *
+ * Default menu styling (ul.menu) is defined in system-menus.css.
+ */
+
+
+/*
+ * The active item in a Drupal menu
+ */
+li a.active {
+  color: #000;
+}
+
+/*
+ * Navigation bar
+ */
+#navigation {
+}
+
+#navigation ul /* Primary and secondary links */ {
+  margin: 0;
+  padding: 0;
+  text-align: left; /* LTR */
+}
+
+#navigation li /* A simple method to get navigation links to appear in one line. */ {
+  float: left; /* LTR */
+  padding: 0;
+}
+
+.region-navigation {
+}
+
+/*
+ * Primary and Secondary menu links
+ */
+#main-menu {
+  float: right; /* LTR */
+  list-style: none;
+  text-align: center;
+  vertical-align: text-bottom;
+}
+
+#main-menu li {
+  background: none;
+  float: left; /* LTR */
+  font-size: 1.12em;
+  height: 36px;
+  line-height: 36px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#main-menu li a,
+#main-menu li a:visited {
+  border-left: 4px solid #858383; /* LTR */
+  color: #fff;
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: normal;
+  margin: 0 10px;
+  padding: 0 5px;
+  text-decoration: none;
+}
+
+#main-menu li a:hover,
+#main-menu li a:active,
+#main-menu li a.active {
+  border-left: 4px solid #facd00; /* LTR */
+  color: #fff;
+}
+
+#secondary-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  right: 10px; /* LTR */
+  text-align: center;
+  top: 30px;
+  vertical-align: text-bottom;
+}
+
+#secondary-menu li {
+  background: none;
+  float: left; /* LTR */
+  font-size: .9em;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#secondary-menu li a,
+#secondary-menu li a:visited {
+  color: #facd00;
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: normal;
+  margin: 0 10px;
+  padding: 0 5px;
+  text-decoration: none;
+}
+
+#secondary-menu li a:hover {
+  color: #facd00;
+  text-decoration: underline;
+}
+
+/*
+ * Menu blocks
+ */
+.block-menu {
+}
+
+/*
+ * "Menu block" blocks. See http://drupal.org/project/menu_block
+ */
+.block-menu_block {
+}

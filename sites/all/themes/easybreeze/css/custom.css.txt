@@ -1,0 +1,12 @@
+/**
+ * @file
+ * Custom Styling
+ */
+
+/**
+ * Here are some example for customize your theme layout with
+ * custom.css, divided into section by section.
+ *
+ * To apply them, copy a COMPLETE SECTION of CSS code snippet into your
+ * own custom.css, and take any further more override customization.
+ */

@@ -1,0 +1,38 @@
+XMPP THIN CLIENT
+================
+The XMPP Thin Client strives to be a fully functional web client that does not
+require any downloading of third party software onto your machine in order to utilize.
+
+The client was built out of a need too produce a web thin client for one of our projects.
+
+GOALS
+=====
+The goals of this client were to make it stand alone but also support the ability
+to tie the client into a web server if required. The client should utilize a lot of
+AJAX in order to retrieve information and tries to keep a lot of information in the
+browser memory thus it does not have to go back to the server unless it if for more
+information refreshment.
+
+DIRECTORY STRUCTURE
+===================
+xmppclient --|
+             -- img -> directory holds all images that the client utilizes
+             |
+             -- src -> directory holds the source files for th JSJaC library the client utilizes
+             |
+             -- jqueryplugins -> directory holds the sources for all jquery plugins utilized
+             |
+             -- xct -> directory holds all of the translation files for each language supported
+
+THIRD PARTY LIBRARIES UTILIZED
+==============================
+XMPP Thin Client utilizes the JSJaC library written by Stefan Strigler <steve@zeank.in-berlin.de>
+Would like to thank Stefan for such a great library as a base to develop a viable application from.
+
+XMPP Thin Client utilizes the JQuery <http://jquery.com/> library to make all of the javascript handling
+easier.
+
+AUTHOR and Contributers
+=======================
+Written by Darren Ferguson <darren.ferguson@openband.net>
+Sponsered: OpenBand of Virginia L.L.C. <http://www.openband.net/>

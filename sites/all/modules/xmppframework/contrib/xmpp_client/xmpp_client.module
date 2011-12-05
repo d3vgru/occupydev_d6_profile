@@ -1,0 +1,406 @@
+<?php
+// $Id: xmpp_client.module,v 1.1.2.14 2009/09/25 20:51:04 darrenferguson Exp $
+
+/**
+ * @file
+ * Module providing an XMPP Client for Drupal
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_client_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_client');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides an xmpp thin client for Drupal');
+      break;
+    case 'admin/help#xmpp_client':
+      $output = '<p>'. t('The xmpp_client module allows you to use an xmpp thin client without downloading any additional sotftware') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_init()
+ */
+function xmpp_client_init() {
+  if (user_access('xmpp client access')) {
+    global $user;
+
+    drupal_add_css(drupal_get_path('module', 'xmpp_client') .'/xmpp_client.css');
+    drupal_add_js(drupal_get_path('module', 'xmpp_client') .'/xmpp_client.js');
+    _xmpp_client_user_login_settings();
+    // determine where the user has the launch client immediately enabled
+    if (variable_get('xmpp_client_launch_now_'. $user->uid, false)) {
+      $launch = 1;
+      $urls = _xmpp_client_parse_launch_urls();
+      // Check for a specific destination
+      if (isset($_GET['destination']) || isset($_POST['destination'])) {
+        $destination = (isset($_GET['destination'])) ? trim($_GET['destination']) : trim($_POST['destination']);
+        if (isset($urls[$destination])) {
+          $launch = 0;
+        }
+      }
+      // Check for a specific "q" path
+      if (isset($_GET['q']) || isset($_POST['destination'])) {
+        $q = (isset($_GET['q'])) ? trim($_GET['q']) : trim($_POST['q']);
+        if (isset($urls[$q])) {
+          $launch = 0;
+        }
+      }
+      // Only launch if the client managed to make it past all of the other checks
+      if ($launch == 1) {
+        drupal_add_js("if (Drupal.jsEnabled) { $(document).ready(function() { Drupal.xmpp_client.login(); }); }", 'inline');
+      }
+      // set to false so it will not contiunally load on every page load
+      variable_set('xmpp_client_launch_now_'. $user->uid, false);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_client_perm() {
+  return array('administer xmpp', 'xmpp client access');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_client_menu() {
+  $items['admin/xmppframework/client'] = array(
+    'title' => 'Client',
+    'description' => 'Configure the xmpp client module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_client_admin_settings'),
+    'access arguments' => array('administer xmpp'),
+    'file' => 'xmpp_client.admin.inc',
+  );
+  $items['xmpp_client/status/retrieve'] = array(
+    'title' => 'XWChat Update Status',
+    'page callback' => 'xmpp_client_status_retrieve',
+    'access arguments' => array('xmpp client access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_client.internal.inc',
+  );
+  $items['xmpp_client/status/update'] = array(
+    'title' => 'XWChat Update Status',
+    'page callback' => 'xmpp_client_status_update',
+    'access arguments' => array('xmpp client access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_client.internal.inc',
+  );
+  $items['xmpp_client/config/update'] = array(
+    'title' => 'XWChat Thin Client Configuration Updates',
+    'page callback' => 'xmpp_client_config_update',
+    'access arguments' => array('xmpp client access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_client.internal.inc',
+  );
+  $items['xmpp_client/config'] = array(
+    'title' => 'XWChat Thin Client Configuration Request',
+    'page callback' => 'xmpp_client_config',
+    'access arguments' => array('xmpp client access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_client.internal.inc',
+  );
+  $items['xmpp_client/password'] = array(
+    'title' => 'XWChat Thin Client User Password Request',
+    'page callback' => 'xmpp_client_password',
+    'access arguments' => array('xmpp client access'),
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_client.internal.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_block()
+ */
+function xmpp_client_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $block = array(
+        array('info' => t('XMPP_CLIENT: Chat Launch')),
+      );
+      break;
+    case 'view':
+      switch ($delta) {
+        case 0:
+          $block['subject'] = check_plain(t('Launch Chat'));
+          $block['content'] = theme('xmpp_client_login');
+          break;
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function xmpp_client_theme() {
+  return array(
+    'xmpp_client_login' => array(
+      'file' => 'xmpp_client.theme.inc'
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function xmpp_client_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($op == 'prepare' && $node->type == 'xmppchat' && !isset($node->nid)) {
+    // check if the post has any data in it
+    if (!empty($_POST)) {
+      $node->title = $_POST['title'];
+      $node->body = $_POST['body'];
+      $node->field_begin_time[0]['value'] = strtotime($_POST['begin_time']);
+      $node->field_end_time[0]['value'] = strtotime($_POST['end_time']);
+      $node->field_participants[0]['value'] = $_POST['participants'];
+      $node->field_chat_type[0]['value'] = $_POST['chat_type'];
+      // Checking if this was a muc chat and if so we need to set the og_groups piece
+      if (isset($_POST['mucname']) && drupal_strlen($_POST['mucname']) && module_exists('xmpp_node_muc')) {
+        $result = db_fetch_array(db_query("SELECT n.type, g.nid FROM {xmpp_node_muc_groups} g INNER JOIN {node) n ON g.nid = n.nid WHERE title = '%s'", $_POST['mucname']));
+        // Verify that we actually received the correct information pertaining to this
+        if (is_array($result) && isset($result['type']) && isset($result['nid'])) {
+          if (xmpp_node_muc_type($result['type']) == XMPP_NODE_MUC_PERMANENT && is_numeric($result['nid'])) {
+            $node->og_groups = array($result['nid']);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_footer()
+ */
+function xmpp_client_footer($main = 0) {
+  if (user_access('xmpp client access')) {
+    return drupal_get_form('xmpp_client_footer_form');
+  }
+}
+
+/**
+ * Implementation of hook_user()
+ */
+function xmpp_client_user($op, &$edit, &$account, $category = NULL) {
+  if (!empty($account->uid) && $account->uid) {
+    if ($op == 'form' && $category == 'account') {
+      // if the administrator is allowing us to launch the client automatically
+      $form['xmpp_user']['launch'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Disable the launching of the Chat Client on Login'),
+        '#default_value' => variable_get('xmpp_client_launch_'. $account->uid, false),
+        '#description' => t('If checked the launching of the Chat Client will be disabled for logins'),
+        '#access' => variable_get('xmpp_client_launch', false),
+        '#weight' => 10,
+      );
+      return $form;
+    }
+
+    if ($op == 'update' && $category == 'account') {
+      if (variable_get('xmpp_client_launch', false) && isset($edit['xmpp_user']['launch'])) {
+        variable_set('xmpp_client_launch_'. $account->uid, $edit['xmpp_user']['launch']);
+      }
+    }
+  }
+}
+/**
+ * Update the user information in the system, if the account is updated
+ */
+function xmpp_client_user_update($edit, $user, $category = NULL) {
+  if ($category == 'account' && isset($edit['xmppclient']['jid'])) {
+    // initially set the password to what it currently it in the database table
+    $password = $user->xmppclient['password'];
+    // if a new password is set, we should encode it and then save in the database
+    if (isset($edit['pass']) && strlen($edit['pass'])) {
+      $password = __xmppclient_password($edit['pass']);
+    }
+    // updating the information in the table based off what we received in the user form submission
+    db_query("UPDATE {xmppclient_user} SET jid = '%s', password = '%s' WHERE uid = %d", $edit['xmppclient']['jid'], $password, $user->uid);
+
+    // setting the name here so it will change in the provisioning instead of the original name
+    // since we are calling with the true variable set it will always make sure it updates the information
+    // will only call if the information is actually available to us i.e. there is a name in the edit array
+    if (isset($edit['name']) && strlen($edit['name'])) {
+      $user->name = $edit['name'];
+      _xmppclient_provision_jid($user, TRUE);
+    }
+
+  }
+}
+
+
+/**
+ * @param &$form_state
+ *      Current state of the form
+ */
+function xmpp_client_login_form(&$form_state) {
+  $form = array('#prefix' => '<div id="xmpp-client-login" class="xmpp-client-login">', '#suffix' => '</div>');
+  $form['xmpp_client']['login']['button'] = array(
+    '#type' => 'button',
+    '#value' => t('Launch'),
+    '#description' => t('Launch the Chat Client'),
+    '#button_type' => 'button',
+    '#attributes' => array('onclick' => "return Drupal.xmpp_client.login();"),
+    '#access' => user_access('xmpp client access'),
+  );
+  return $form;
+}
+
+/**
+ * Function creates the hidden form we utilize to save chat transcripts
+ * From the Chat application when hitting the Save Chat link
+ */
+function xmpp_client_footer_form(&$form_state) {
+  $form = array('#action' => url('node/add/xmppchat'), '#prefix' => '<div class="xmpp-client-footer-form">', '#suffix' => '</div>', '#id' => 'xcMUCPostForm');
+  $form['chat_type'] = array('#type' => 'hidden', '#value' => 'muc', '#id' => 'chat_type');
+  $form['title'] = array('#type' => 'hidden', '#id' => 'title');
+  $form['begin_time'] = array('#type' => 'hidden', '#id' => 'begin_time');
+  $form['end_time'] = array('#type' => 'hidden', '#id' => 'end_time');
+  $form['participants'] = array('#type' => 'hidden', '#id' => 'participants');
+  $form['body'] = array('#type' => 'hidden', '#id' => 'body');
+  $form['mucname'] = array('#type' => 'hidden', '#id' => 'mucname');
+  return $form;
+}
+
+/**
+ * Start the xmpp client from a menu option
+ */
+function xmpp_client_menu_start_client() {
+  global $user;
+  if (!is_null(xmpp_user_get_password($user))) {
+    print "Drupal.xmpp_client.login();";
+  }
+  exit;
+}
+
+/**
+ * Determine the users current locale settings
+ *
+ * @param $user
+ *      User Object
+ *
+ * @return $locale
+ *      String representation of the users locale
+ */
+function _xmpp_client_determine_locale($user) {
+  global $language;
+
+  $default_language = $language->language;
+  if (strcmp($default_language, "en")) {
+    return $default_language;
+  }
+  // Check the users language settings to determine if we can return that language
+  if (isset($user->language) && !is_null($user->language) && drupal_strlen($user->language)) {
+    return $user->language;
+  }
+
+  // Check if locale module exists and site wide locale has been set
+  if (module_exists('locale')) {
+    global $locale;
+    if (!is_null($locale) && drupal_strlen($locale)) {
+      return $locale;
+    }
+  }
+  // if nothing is set then return the xmpp_client module locale settings, will always default to english if not set
+  return variable_get('xmpp_client_locale', 'en');
+}
+
+/**
+ * Function returns to the user the javascript command to start the thin client
+ *
+ * @param $text
+ *      The text that will be displayed for the link
+ * @param $buddy
+ *      The user object for the buddy you wish to start the one on one chat with
+ */
+function _xmpp_client_build_start_chat_link($text, $buddy) {
+  $data = '';
+  if (isset($buddy->xmpp_user['jid']) && !is_null($buddy->xmpp_user['jid']) && drupal_strlen($buddy->xmpp_user['jid'])) {
+    $data = '<a href="javascript:Drupal.xmpp_client.message_chat(\''. $buddy->xmpp_user['jid'] .'\');">'. $text .'</a>';
+  }
+  return $data;
+}
+
+/**
+ * Function produces the link for joining a muc
+ *
+ * @param $text
+ *      The text that will be displayed in the link
+ * @param $group
+ *      The group we are going to join
+ * @param $func
+ *      The name of the javascript function to be called
+ */
+function _xmpp_client_build_join_muc_link($text, $group, $func) {
+  global $user;
+
+  if (!is_null(xmpp_user_get_password($user))) {
+    return '<a href="javascript:'. $func .'(\''. $group .'\');">'. $text .'</a>';
+  }
+  return '';
+}
+
+/**
+ * Function produces the javascript but not full link for the call to join a muc
+ *
+ * @param $func
+ *      The name of the javascript function that will be called
+ * @param $group
+ *      The group we are going to join
+ */
+function _xmpp_client_build_join_muc_js($func, $group) {
+  global $user;
+
+  if (!is_null(xmpp_user_get_password($user))) {
+    return $func .'(\''. $group .'\');';
+  }
+  return '';
+}
+
+/**
+ * Function makes sure the correct xmpp_client settings are in the js DOM
+ */
+function _xmpp_client_user_login_settings() {
+  global $user;
+
+  if (!isset($user->xmpp_user) || !is_array($user->xmpp_user)) {
+    $user->xmpp_user = db_fetch_array(db_query("SELECT jid, resource FROM {xmpp_user} WHERE uid = %d", $user->uid));
+  }
+  $settings['xmpp_client']['login']['url'] = base_path() . drupal_get_path('module', 'xmpp_client') .'/xwchat/roster.html?';
+  $settings['xmpp_client']['login']['username'] = _xmpp_user_parse_jid($user->xmpp_user['jid'], TRUE);
+  $settings['xmpp_client']['login']['resource'] = $user->xmpp_user['resource'];
+  $settings['xmpp_client']['login']['domain'] = _xmpp_user_parse_jid($user->xmpp_user['jid'], FALSE);
+  $settings['xmpp_client']['login']['srvUrl'] = url('xmpp_client');
+  $settings['xmpp_client']['login']['locale'] = _xmpp_client_determine_locale($user);
+  $settings['xmpp_client']['login']['httpbase'] = variable_get('xmpp_client_httpbase', '/http-bind/');
+  $settings['xmpp_client']['login']['authtype'] = variable_get('xmpp_client_authtype', 'nonsasl');
+  $settings['xmpp_client']['login']['MUC'] = variable_get('xmpp_client_muc_conference', 'conference.chat.openband.net');
+  $settings['xmpp_client']['login']['SEARCH'] = variable_get('xmpp_client_jud', 'vjud.chat.openband.net');
+  drupal_add_js($settings, 'setting');
+}
+
+/**
+ * Function parses the launch urls and returns an array with them set
+ */
+function _xmpp_client_parse_launch_urls() {
+  $return = array();
+  // Retrieve the allowed domains based off what the administrator entered
+  $urls = explode("\n", variable_get('xmpp_client_launch_urls', ''));
+  if (!empty($urls)) {
+    foreach ($urls as $url) {
+      $return[trim($url)] = trim($url);
+    }
+  }
+  return $return;
+}

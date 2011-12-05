@@ -1,0 +1,118 @@
+Easy Breeze 6.x-2.0, 2011-07-25
+----------------------
+- Bugfix ".node ul.links" and ".comment ul.links" in order to algin right
+  correctly.
+- Bugfix page footer with large white spacing by enabling "overflow-y:
+  hidden".
+- Update default layout as fixed width.
+- Update screenshots.
+- Bugfix RTL implementation.
+- Reset node links without class "inline, sync with Drupal 7.x.
+
+Easy Breeze 6.x-2.0-rc2, 2011-06-27
+----------------------
+- Clean up redundancy list styling in candy.css.
+- Keep CiviCRM menu sticky on page top rather than flow.
+- Bugfix unnecessary background color which break input button default style.
+
+Easy Breeze 6.x-2.0-rc1, 2011-05-01
+----------------------
+- Remove legacy Drupal 6.x theme search box support.
+- Update layout as 960 Grid System.
+- Bugfix .item-list ul indent layout.
+- Rebase with zen-6.x-2.1 STARTERKIT.
+- Move custom lists style to candy.css, keep html-reset.css clean for compare.
+- Move custom tr style to candy.css, keep pages.css clean for compare.
+- Update README.txt.
+
+Easy Breeze 6.x-2.0-beta1, 2011-03-18
+----------------------
+- Bugfix ul.links layout when comment/node are too short.
+- [#1083694]: Loading order of custom.css.
+- Update screenshots for Drupal.org display.
+- Bugfix custom.css can't override ie*.css due to wrong append order.
+- Add RTL support.
+- Fully tested with Acid2 compatible browsers, e.g. Firefox 4, IE 9, Chrome
+  10, Safari 5 and Opera 11.
+- Most likely function with legacy browsers, e.g. Firefox 2/3, IE 7/8, Chrome
+  8/9, Safari 3/4 and Opera 9/10.
+- Update screenshots for Drupal.org display.
+
+Easy Breeze 6.x-2.0-alpha4, 2011-03-06
+----------------------
+- Completely revamp as zen-6.x-2.x-dev subtheme.
+- Backport from easybreeze-7.x-3.x-dev.
+- Reset coding style as like as STARTERKIT, simpler for compare.
+- Add support liquid/fluid/fixed layouts in theme-settings.php.
+- Skip 6.x-2.0-alpha3, sync with interactive_media.
+
+Easy Breeze 6.x-2.0-alpha2, 2010-09-25
+----------------------
+- Default with fluid width layout.
+- Better secondary links coding syntax.
+- Better block region styling, clone from original design.
+- Better naming for sidebar border images.
+- Fix mission overlap by background block border image.
+- Fix footer region font size.
+
+Easy Breeze 6.x-2.0-alpha1, 2010-09-25
+----------------------
+- Completely revamp as zen-6.x-2.0 subtheme.
+- Default with fixed width layout.
+- Optimize all png images with pngcrush.
+- Fix disappear primary menu.
+- Fix side margin of contnet/sidebar.
+
+Easy Breeze 6.x-1.3, 2009-12-18
+----------------------
+- Update README.txt.
+
+Easy Breeze 6.x-1.2, 2009-05-14
+----------------------
+- Better visibility for visited links.
+- New custom style for print.module.
+- [#344551]: fix primary links disconnected within small screen size.
+- Revamp primary links handling, clone from garland.
+- [#359498]: document example about howto change the sidebar width.
+- Document more information about custom.css and custom.example.css.
+- Simplify custom theme function implementation, clone from garland.
+
+Easy Breeze 6.x-1.1, 2008-11-23
+----------------------
+- Update README.txt.
+- Better comment message.
+- [#314124]: fix profile picture alignment.
+- [#337338]: use '$front_page' instead of $base_path in page.tpl.php
+
+Easy Breeze 6.x-1.0, 2008-08-30
+----------------------
+- Fix footer background color when short page height.
+- Add missing content h1/h2/h3 border style, clone from Interactive Media.
+- Synchronize h1/h2/h3/etc color.
+- Add @ingroup for custom.example.css, better documentation.
+
+Easy Breeze 6.x-1.0-rc1, 2008-08-17
+----------------------
+- Initial RC release.
+- Re-implementation of http://www.spinz.se/Templates/EasyBreeze/
+- Most code and style sync with http://drupal.org/project/interactive_media
+- Tableless, multi-column, fluid width layout.
+- Can customize layout with custom.css.
+- Support RTL.
+
+Easy Breeze 5.x-1.2, 2009-12-18
+----------------------
+- Update README.txt.
+
+Easy Breeze 5.x-1.1, 2008-11-23
+----------------------
+- Sync with 6.x-1.x-dev.
+- This should be the last stable release for Drupal 5.x.
+
+Easy Breeze 5.x-1.0, 2008-08-30
+----------------------
+- Sync with 6.x-1.x-dev.
+
+Easy Breeze 5.x-1.0-rc1, 2008-08-17
+----------------------
+- Sync with 6.x-1.x-dev.

@@ -1,0 +1,45 @@
+Changes since DRUPAL-6--2-0:
+----------------------------
+
+- #431944 by ifoundthetao | gpk: Fixed Public Audience checkbox still visible
+  with all private group settings.
+- #669224 by greggles: Added move the og notifications addition form to a more
+  appropriate place.
+- #534870 Split menu callbacks into pages.inc. Add userpage key to
+  hook_notifications/subscription types.
+- #659556 by marcp. Unnecessary selector in og_access.js
+- #442238 by Scott Reynolds - Activity Integration with OG.
+- #586422 by gpk, lesmana | Amitaibu: Fixed Regression: 'Public' checkbox is
+  unchecked when editing a node that is not in any groups.
+- #602294 by Dave Reid. PHP notice: Undefined property: stdClass::
+- #673824 by stella: Added 'Group: Private' field - add Private/Public display
+  option.
+- #475536 Patch by hefox - Checking of category for user_profile_form.
+- #711354 by Damien Tournoud  : Added Add a 'current group from context' default
+  argument handler.
+- #691646 by stella: Added Allow text of 'edit membership' field to be editable.
+- #328758 by stella : Add 'invite to group' link in views.
+- #555310 by rob.carter. fi upgrade to og2 in og_access.install
+- #569502 by crea | Amitaibu: Added New Rules actions: add group to audience,
+  remove group from audience.
+- #644098 by crea: Fixed Use personal messages for user leaving a group
+  (removing himself).
+- #620032 by crea : Fixed Rules integration calls og_is_group_member() with
+  wrong arguments, and allow checking if a user is a group admin.
+- #639294 by marcp. More granular argument validation for OG Group Nodes.
+- #569356 by greggles. 'new groups' shows moderated posts
+- #658572 by jcmarco | Dave Reid: Changed Add support for vertical tabs.
+- #362493 Fixed og_nodeapi() presave might filter out groups.
+- #496468 by c4rl. allow admins to specify maximum audience per content type.
+  can disable crossposting by setting this to 1.
+- #701420 by yhahn, jmiccolis: Fixed managelink field handler has unpredictable
+  results outside of a group context.
+- #602754 by marcp. Add 'Manager of the current group' to Group nodes validator
+  in Views.
+- #656386 by alex_b: Fixed Redundant variable_set().
+- #569110 by greggles, jcmarco, crea. SQL rewrite bug.
+- #679770 by gordon: Added Additional Vertical Tabs JS.
+- #534870 Group subscriptions management - account for unpublished groups.
+- #581822 by markus_petrux. og_nodeapi('validate') warning
+- #555524 by NickSI | greggles: Fixed Filter 'OG: Is member an admin in a group'
+  does not remember selected condition.

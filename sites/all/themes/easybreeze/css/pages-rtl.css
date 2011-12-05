@@ -1,0 +1,70 @@
+/**
+ * @file
+ * RTL companion for the pages.css file.
+ */
+
+
+/*
+ * Header
+ */
+#logo /* Wrapping link for logo */ {
+  float: right;
+  margin: 30px 10px 0 0;
+}
+
+#name-and-slogan /* Wrapper for website name and slogan */ {
+  float: right;
+  margin: 30px 10px 0 0;
+}
+
+/*
+ * Content
+ */
+.more-help-link /* Link to more help */ {
+  text-align: left;
+}
+
+.more-link /* Aggregator, blog, and forum more link */ {
+  text-align: left;
+}
+
+/*
+ * First sidebar (on left in LTR languages, on right in RTL)
+ *
+ * Remember to NOT add padding or margin to your .region-sidebar-first
+ * (see the layout.css file.)
+ */
+.region-sidebar-first {
+  border-left: 1px solid #eaeaea;
+  border-right: none;
+  margin-left: auto;
+  margin-right: 709px;
+}
+
+/*
+ * Second sidebar (on right in LTR languages, on left in RTL)
+ *
+ * Remember to NOT add padding or margin to your .region-sidebar-second
+ * (see the layout.css file.)
+ */
+.region-sidebar-second {
+  border-left: none;
+  border-right: 1px solid #eaeaea;
+  margin-left: auto;
+  margin-right: -2px;
+}
+
+/*
+ * Triptych
+ */
+#triptych .region {
+  border-right: none;
+  border-left: 1px solid #eaeaea;
+  margin-right: auto;
+  margin-left: -1px;
+}
+
+#triptych .region-triptych-last {
+  border-left: none;
+  margin-left: auto;
+}

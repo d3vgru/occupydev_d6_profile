@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Update User Information</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+    var jid = JQ(document).getUrlParam('jid');
+
+    /**
+     * Set message information and then activate timeout to clear it
+     * @param {String} msg The message to set
+     * @action sets the message and calls the timeout to clear it
+     */
+    function xcSetMsg(msg, error) {
+      if (JQ('div#msg').children().size() > pWin.XC.LOGSIZE) {
+        JQ('div#msg').children(':first-child').remove();
+      }
+      if (error) {
+        JQ('#msg').addClass('xcError').append('<div>' + msg + '</div>').show();
+      } else {
+        JQ('#msg').removeClass('xcError').append('<div>' + msg + '</div>').show();
+      };
+    };
+
+    function xcUpdateUserInit() {
+      if (!(contact = pWin.xcContactExists(jid))) {
+        xcSetMsg(pWin.xcT('Associate is not in your list of contacts'), true);
+        setTimeout('window.close()', pWin.XC.ERRORTIMEOUT);
+        return false;
+      };
+      // creating the groups on the fly
+      var groups = "<select name='group' multiple id='group' size='3' class='xcSelect'>"
+      for (var x = 0;x < pWin.grouplist.length; x++) {
+        if (contact.searchGroup(pWin.grouplist[x])) {
+          groups += "<option value='" + pWin.grouplist[x] + "' selected>" + pWin.grouplist[x] + "</option>";
+        } else {
+          groups += "<option value='" + pWin.grouplist[x] + "'>" + pWin.grouplist[x] + "</option>";
+        };
+      };
+      groups += "</select>";
+      groups += '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('New group') + '</a>';
+      // populating the information in the form
+      JQ('#jid').val(jid);
+      JQ('#name').val(contact.getName());
+      JQ('#group_holder').html(groups);
+    };
+
+    function xcUpdateUser(name, other) {
+      var jid = JQ('#jid').val();
+      if (typeof(jid) == 'undefined' || jid == '') {
+        xcSetMsg(pWin.xcT('Chat ID required for creating a new associate'), true);
+        return false;
+      };
+      if (jid.indexOf('@') == -1) {
+        xcSetMsg(pWin.xcT('Chat ID should be in the form name@hostname i.e. name@host.com'), true);
+        return false;
+      };
+      if (typeof(name) == 'undefined' || name == '') {
+        name = jid.split('@')[0]; // take the portion before the @ in the JID
+      };
+      // get the multiple values from the group box
+      var group = new Array();
+      if (typeof(other) != 'undefined' && other != '') { group.push(other); };
+      JQ('#group option:selected').each(function() { group.push(JQ(this).attr('value')); });
+      if (group.length == 0) {
+        xcSetMsg(pWin.xcT('You must select a group for your new associate'), true);
+        return false;
+      };
+      pWin.xcUpdateUser(jid, name, group);
+      window.close();
+    }
+
+    function xcToggleNewGroup() {
+      JQ('#xcNewGroup').toggle();
+      JQ('#xcChooseGroup').toggle();
+    }
+
+    JQ(document).ready(function() {
+      xcUpdateUserInit();
+      // Setting the click handler for the message div
+      JQ('div#msg').click(function() {
+        JQ(this).removeClass('xcError').html('').hide();
+      });
+    });
+
+    // default action if the enter button is pressed
+    JQ(document).keydown(function(e) {
+      var keycode = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+      if (keycode == 13) {
+        var n = JQ('form#update_user_form div.xcFieldWrapper input#name.xcInput').val(); // name field
+        var o = JQ('form#update_user_form div#xcNewGroup.xcFieldWrapper input#other.xcInput').val(); // other field
+        xcUpdateUser(n, o); // enter key pressed
+        return false;
+      };
+      return true;
+    });
+
+    JQ(window).unload(function(){
+      try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcUpdateUser">
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Update User Details'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="update_user_form" name="update_user_form">
+           <script type="text/javascript">
+              var str = '<div class="xcFieldWrapper text_field">' +
+                        '<label for="jid" id="jid_lbl" class="xcLabel" title="' + pWin.xcT('ID of the associate you wish to add in name@hostname form') + '">' + pWin.xcT('Account name') + ':</label>' +
+                        '<input type="text" id="jid" value="" class="xcInput" disabled />' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper text_field">' +
+                        '<label for="name" id="name_lbl" class="xcLabel" title="' + pWin.xcT('Alias you wish to display when viewing your associate in your roster') + '">' + pWin.xcT('Display name') + ':</label>' +
+                        '<input type="text" id="name" value="" class="xcInput" />' +
+                        '<em style="color:#777;padding-left:5px;font-size:11px;font-style:italic">' + pWin.xcT('Optional') + '</em>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper select" id="xcChooseGroup">' +
+                        '<label for="group" id="group_lbl" class="xcLabel" title="' + pWin.xcT('Group / Groups you wish put your associate in') + '">' + pWin.xcT('Group') + ':</label>' +
+                        '<div id="group_holder"></div>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper text_field" id="xcNewGroup" style="display:none">' +
+                        '<label for="other" id="other_lbl" class="xcLabel" title="' + pWin.xcT('Put associate in group that does not already exist') + '">' + pWin.xcT('New group') + ':</label>' +
+                        '<input type="text" id="other" value="" class="xcInput" />' +
+                        '<a href="#" class="xcToggleNewGroup" onclick="xcToggleNewGroup()">' + pWin.xcT('Cancel') + '</a>' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper button xcSubmit">' +
+                        '<input type="button" id="update_button" value="' + pWin.xcT('Update') + '" class="xcButton" onClick="xcUpdateUser(this.form.name.value, this.form.other.value);" />' +
+                        '</div>';
+              document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+
+ </body>
+</html>

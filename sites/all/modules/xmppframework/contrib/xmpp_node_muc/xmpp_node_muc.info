@@ -1,0 +1,14 @@
+; $Id xmpp_node_muc.info,v 1.1.4.1 2008/04/13 18:02:39 darren.ferguson Exp $
+name = XMPP-NODE-MUC
+package = "XMPP Framework"
+description = Provides the ability to associate mucs with a node
+dependencies[] = xmpp_user
+core = 6.x
+project = "xmpp"
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

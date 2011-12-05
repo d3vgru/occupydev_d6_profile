@@ -1,0 +1,15 @@
+; $Id: notifications.info,v 1.1.4.1.6.1 2010/03/26 17:40:15 jareyero Exp $
+name = Notifications
+description = The basic notifications framework
+package = "Notifications"
+dependencies[] = messaging
+dependencies[] = messaging_template
+core = 6.x
+php = 5.0
+
+; Information added by drupal.org packaging script on 2010-08-01
+version = "6.x-4.0-beta7"
+core = "6.x"
+project = "notifications"
+datestamp = "1280696476"
+

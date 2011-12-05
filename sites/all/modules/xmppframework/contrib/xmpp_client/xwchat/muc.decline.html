@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Group Chat Declined</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+
+    var from = JQ(document).getUrlParam('from');
+    var reason = JQ(document).getUrlParam('reason');
+    JQ(document).ready(function() {
+      JQ('form#mucdecline span#muc_decline_from').html(from);
+      JQ('form#mucdecline span#muc_decline_reason').html(unescape(reason));
+    });
+    JQ(window).unload(function() {
+      try { pWin.xcWinClose(pWin.xcDec(window.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcMUCDecline">
+
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Group Chat Invitation Declined'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="mucdecline" name="mucdecline">
+           <script type="text/javascript">
+             var str = '<div class="xcFieldWrapper"><label>' + pWin.xcT('From') + ':</label> <span id="muc_decline_from"></span></div>' +
+                       '<div class="xcFieldWrapper"><label>' + pWin.xcT('Reason') + ':</label> <span id="muc_decline_reason"></span></div>' +
+                       '<div class="xcFieldWrapper button xcSubmit">' +
+                       '<input type="button" id="close_button" name="close_button" value="' + pWin.xcT('Close') + '" class="xcButton" onClick="window.close();" />' +
+                       '</div>';
+             document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+ </body>
+</html>

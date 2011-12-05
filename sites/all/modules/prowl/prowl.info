@@ -1,0 +1,12 @@
+name = Prowl
+description = This module provides Drupal status notifications and an API for the Prowl iPhone push notification client.
+core = 6.x
+dependencies[] = token
+dependencies[] = libraries
+
+; Information added by drupal.org packaging script on 2011-10-05
+version = "6.x-2.0"
+core = "6.x"
+project = "prowl"
+datestamp = "1317841007"
+

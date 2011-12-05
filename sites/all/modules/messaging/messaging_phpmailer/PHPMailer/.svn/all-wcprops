@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svnroot/phpmailer/!svn/ver/253/phpmailer/branches/5.0-dev
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/phpmailer/!svn/ver/213/phpmailer/branches/5.0-dev/LICENSE
+END
+ChangeLog.txt
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/phpmailer/!svn/ver/258/phpmailer/branches/5.0-dev/ChangeLog.txt
+END
+aboutus.html
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/phpmailer/!svn/ver/253/phpmailer/branches/5.0-dev/aboutus.html
+END
+docs.ini
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/phpmailer/!svn/ver/213/phpmailer/branches/5.0-dev/docs.ini
+END
+class.phpmailer.php
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svnroot/phpmailer/!svn/ver/254/phpmailer/branches/5.0-dev/class.phpmailer.php
+END
+class.pop3.php
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/phpmailer/!svn/ver/241/phpmailer/branches/5.0-dev/class.pop3.php
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/phpmailer/!svn/ver/260/phpmailer/branches/5.0-dev/README
+END
+class.smtp.php
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/phpmailer/!svn/ver/240/phpmailer/branches/5.0-dev/class.smtp.php
+END

@@ -1,0 +1,89 @@
+<?php
+// $Id: xmpp_user.install,v
+
+/**
+ * Implementation of hook_enable().
+ */
+function xmpp_user_enable() {
+  drupal_set_message(t('XMPP User module successfully installed. Please review the <a href="@settings">configuration settings</a>.', array('@settings' => url('admin/xmppframework/user'))));
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function xmpp_user_install() {
+  variable_set('xmpp_user_schema_version', 6001);
+  // doing this so this module will always execute its handlers before ldap
+  db_query("UPDATE {system} SET weight = -10 WHERE name = 'xmpp_user' AND type = 'module'");
+  drupal_install_schema('xmpp_user');
+  _xmpp_user_copy_db_tables();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmpp_user_uninstall() {
+  drupal_uninstall_schema('xmpp_user');
+}
+
+/**
+ * Implementation of hook_schema()
+ */
+function xmpp_user_schema() {
+  return array(
+    'xmpp_user' => array(
+      'description' => t("Stores XMPP User Mappings"),
+      'fields' => array(
+        'uid' => array('type' => 'int', 'not null' => TRUE),
+        'jid' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+        'resource' => array('type' => 'varchar', 'length' => 128, 'not null' => FALSE, 'default' => 'xwchat-drupal'),
+        'password' => array('type' => 'varchar', 'length' => 128, 'not null' => FALSE),
+        'last_access' => array('type' => 'int', 'not null' => FALSE),
+        'status' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => 'offline'),
+        'message' => array('type' => 'varchar', 'length' => 1024, 'not null' => TRUE, 'default' => 'offline'),
+      ),
+      'primary key' => array('uid'),
+    ),
+    'xmpp_user_properties' => array(
+      'description' => t("Table holds any user properties specifically configuraton properties"),
+      'fields' => array(
+        'uid' => array('type' => 'int', 'not null' => TRUE),
+        'property_id' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+        'value' => array('type' => 'varchar', 'length' => 1024, 'not null' => TRUE),
+      ),
+      'primary key' => array('uid', 'property_id'),
+    ),
+  );
+}
+
+/**
+ * Helper function to actually copy the information from the tables in the database
+ */
+function _xmpp_user_copy_db_tables() {
+  // Do the query in the database do not bring any variable back to the Drupal platform
+  if (db_table_exists('xmppclient_user')) {
+    db_query("INSERT INTO {xmpp_user} (uid, jid, resource, password, last_access, status, message) (SELECT uid, jid, resource, password, last_access, status, message FROM {xmppclient_user})");
+  }
+  // Do the query in the database do not bring any variable back to the Drupal platform
+  if (db_table_exists('xmppclient_user_properties')) {
+    db_query("INSERT INTO {xmpp_user_properties} (uid, property_id, value) (SELECT uid, property_id, value FROM {xmppclient_user_properties})");
+  }
+}
+
+/**
+ * Update the pertinent module variables with the old settings from the xmppclient module
+ */
+function xmpp_user_update_6000() {
+  variable_set('xmpp_user_provisioning_server', variable_get('xmppclient_provisioning_server', ''));
+  variable_set('xmpp_user_provisioning_on', variable_get('xmppclient_provisioning_on', FALSE));
+  variable_set('xmpp_user_cron_interval', 1);
+  variable_set('xmpp_user_schema_version', 6000);
+}
+
+/**
+ * Copy the information from the old xmppclient module tables to the xmpp user module tables
+ */
+function xmpp_user_update_6001() {
+  _xmpp_user_copy_db_tables();
+  variable_set('xmpp_user_schema_version', 6001);
+}

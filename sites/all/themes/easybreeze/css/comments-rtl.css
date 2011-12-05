@@ -1,0 +1,20 @@
+/**
+ * @file
+ * RTL companion for the comments.css file.
+ */
+
+
+.comment .picture /* The picture of the comment author */ {
+  float: left;
+  margin: 0 .5em .5em 0;
+}
+
+.comment .submitted /* The "posted by" information */ {
+  background: url(../images/calendar.png) right center no-repeat;
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+.comment ul.links /* Comment links. See also the ul.links declaration in the pages.css. */ {
+  text-align: left;
+}

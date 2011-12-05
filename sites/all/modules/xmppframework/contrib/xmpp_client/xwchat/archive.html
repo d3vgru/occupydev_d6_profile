@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Search Chat Archive</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="archive.js"></script>
+ </head>
+ <body id="xcArchive">
+   <div id="xcChat">
+
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Search Chat Archive'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="archive_search_form" name="archive_search_form">
+
+           <script type="text/javascript">
+             var str = '<div class="xcFieldWrapper text_field">' +
+                       '<label for="start_date" id="start_date_lbl" class="xcLabel" title="' + pWin.xcT('All records on or after this date but before end date') + '">' + pWin.xcT('Start Date') + '</label>' +
+                       '<input type="text" id="start_date" value="" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="end_date" id="end_date_lbl" class="xcLabel" title="' + pWin.xcT('All records on or before this date but after start date') + '">' + pWin.xcT('End Date') + '</label>' +
+                       '<input type="text" id="end_date" value="" class="xcInput" />' +
+                       '</div>' +
+                       '<div class="xcFieldWrapper text_field">' +
+                       '<label for="archive_list" id="archive_list_lbl" class="xcLabel" title="' + pWin.xcT('Conversations listed by start time') + '">' + pWin.xcT('Archived Conversations') + '</label>' +
+                       '</div>' +
+                       '<div id="archive_list" class="xcChatList"></div>' +
+                       '<div class="xcFieldWrapper hidden">' +
+                       '<label for="archive_conversation" id="archive_conversation_lbl" class="xcLabel" title="' + pWin.xcT('Conversation transcript as it happened') + '">' + pWin.xcT('Conversation Transcript') + '</label>' +
+                       '</div>' +
+                       '<div id="archive_conversation" class="xcConversationList"></div>' +
+                       '<div class="xcFieldWrapper button xcSubmit">' +
+                       '<input type="button" class="xcButton" id="remove_button" name="remove_button" value="' + pWin.xcT('Remove') + '" />' +
+                       '<input type="button" class="xcButton" id="save_button" name="save_button" value="' + pWin.xcT('Save') + '" onClick="xcPostArchive();" />' +
+                       '</div>';
+             document.write(str);
+           </script>
+
+         </form>
+       </div>
+       <div id="msg" class="xcMessage"></div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+   </div>
+ </body>
+</html>

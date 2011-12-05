@@ -1,0 +1,104 @@
+<?php
+// $Id: xmpp_api.module,v 1.1.2.2.2.17 2009/09/25 20:51:04 darrenferguson Exp $
+
+/**
+ * @file
+ * Module providing an XMPP API for Drupal
+ */
+
+define('XMPP_API_PATH',              drupal_get_path('module', 'xmpp_api'));
+define('XMPP_API_ADMINJID',          variable_get('xmpp_api_adminjid', ''));
+define('XMPP_API_ADMINJID_PASSWORD', variable_get('xmpp_api_adminjid_password', ''));
+define('XMPP_API_ADMINJID_SERVER',   variable_get('xmpp_api_adminjid_server', ''));
+define('XMPP_API_PROCESS_TIMEOUT',   variable_get('xmpp_api_process_timeout', 2));
+
+/**
+ * Implementation of hook_xmpp()
+ *
+ * @param $op
+ *      The operation that is being requested
+ */
+function xmpp_api_xmpp($op = 'info') {
+  switch ($op) {
+    case 'info':
+      $info['xmpp_api'] = array(
+        'name'        => t('XMPP API'),
+        'operation'   => 'xmpp_api_operation',
+        'description' => t('Utilize pure XMPP API via XMPPPHP'),
+      );
+      return $info;
+  }
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_api_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_api');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides an XMPP API for the Drupal framework');
+      break;
+    case 'admin/help#xmpp_api':
+      $output = '<p>'. t('The xmpp_api module provides an xmpp api for use by drupal') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_api_perm() {
+  return array('administer xmpp api');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_api_menu() {
+  $items['admin/xmppframework/xmpp_api'] = array(
+    'title' => 'XMPP API Settings',
+    'description' => 'Configure the xmpp api module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xmpp_api_admin_settings'),
+    'access arguments' => array('administer xmpp api'),
+    'file' => 'xmpp_api.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Operation function
+ *
+ * @param $op
+ *      Operation we will perform
+ */
+function xmpp_api_operation($op) {
+  static $funcs = array();
+  module_load_include('inc', 'xmpp_api', 'xmpp_api.internal');
+  if (empty($funcs)) {
+    $funcs = array(
+      'set_presence' => 'xmpp_api_set_presence',
+      'send_message' => 'xmpp_api_send_message',
+      'delete_account' => 'xmpp_api_delete_account',
+      'create_muc' => 'xmpp_api_create_muc',
+      'configure_muc' => 'xmpp_api_configure_muc',
+      'delete_muc' => 'xmpp_api_delete_muc',
+      'add_rosteritem' => 'xmpp_api_add_rosteritem',
+      'delete_rosteritem' => 'xmpp_api_delete_rosteritem',
+      'get_vcard' => 'xmpp_api_get_vcard',
+      'set_vcard' => 'xmpp_api_set_vcard',
+      'get_roster' => 'xmpp_api_get_roster',
+      'get_user_resources' => 'xmpp_api_get_user_resources',
+      'get_server_connection' => 'xmpp_api_get_server_connection',
+      'get_admin_connection' => 'xmpp_api_get_server_connection',
+      'get_user_connection' => 'xmpp_api_get_user_connection',
+      'release_connection' => 'xmpp_api_release_connection',
+    );
+  }
+  return isset($funcs[$op]) ? $funcs[$op] : NULL;
+}

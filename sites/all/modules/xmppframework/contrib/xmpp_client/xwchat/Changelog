@@ -1,0 +1,31 @@
+2008-05-06  Darren Ferguson <darren.ferguson@openband.net>
+        * Fixed issue with MUC choosing last alias if window was reloaded 
+        * Max time wait to 10 seconds in jsjac.packed.js
+        * Messages now sent to group chat created from one on one chat
+
+2008-05-05  Darren Ferguson <darren.ferguson@openband.net>
+	* Fixed subscription window not showing groups if received on client startup before roster received
+	* Fixed message window not showing name of person if roster had not been received
+        * Left click in MUC on person will now initiate one on one chat.
+        * Added selected class to the MUC occupants so you know who you clicked on
+
+2008-04-30  Darren Ferguson <darren.ferguson@openband.net>
+        * Fixed bug with client not updating roster information if contact updated. (New themeing broke it).
+        * Added initial themeing for bookmarks page
+        * Added initial themeing for updateuser page
+
+2008-04-29  Darren Ferguson <darren.ferguson@openband.net>
+        * Updated Spannish translation files
+        * Updated Roster page markup with new themeing for correct translation
+
+2007-10-21  Darren Ferguson <darren.ferguson@openband.net>
+        * Added support for MUC Chats to client
+
+2007-10-17  Darren Ferguson <darren.ferguson@openband.net>
+        * Added one on one chat option to client
+
+2007-10-10  Darren Ferguson <darren.ferguson@openband.net>
+	* Added support to display the roster in the window
+
+2007-10-09  Darren Ferguson <darren.ferguson@openband.net>
+	* Initial build of small test client XWChat 0.1

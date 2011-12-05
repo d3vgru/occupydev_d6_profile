@@ -1,0 +1,281 @@
+<html>
+  <head>
+    <title>Using XWChat</title>
+    <link rel="stylesheet" href="help/css/xw-help.css" type="text/css"/>
+    <script type="text/javascript" src="help/js/jquery-1.3.2.js"></script>
+    <script type="text/javascript" src="help/js/ui-effects.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#tabs").tabs();
+      });
+    </script>
+  </head>
+  <body>
+
+
+<div id="accordion" class="ui-accordion">
+
+<div id="tabs">
+	<ul>
+		<li><a href="#tab1">TOC</a></li>
+		<li><a href="#tab2">Overview</a></li>
+		<li><a href="#tab3">Basic use</a></li>
+		<li><a href="#tab4">Chatting</a></li>
+		<li><a href="#tab5">Multi-user Chat</a></li>
+		<li><a href="#tab6">FAQ</a></li>
+	</ul>
+
+
+<div id="tab1">
+	<h3 class="ui-accordion-header">TOC</h3>
+
+	<h4>0 - XWChat overview</h4>
+	<ul>
+		<li>Vocabulary
+		<li>Contact list
+		<li>Chat window
+		<li>Settings
+		<li>Privacy</ul>
+
+	<h4>1 - Basic use</h4>
+	<ul>
+		<li>Opening the client
+		<li>Edit your Profile
+		<li>Set status
+		<li>Add a contact
+		<li>Remove a contact
+		<li>Contact groups</ul>
+
+	<h4>2 - The Chat Client and You</h4>
+	<ul>
+		<li>Start a conversation
+		<li>Handling multiple windows
+		<li>Chat history</ul>
+
+	<h4>3 - Multi-user chat (MUC)</h4>
+	<ul>
+		<li>Join a MUC
+		<li>Start a MUC
+		<li>Invite new participants
+		<il>Chat history</ul>
+
+	<h4>4 - FAQs</h4>
+</div>
+
+
+<div id="tab2">
+<h3 class="ui-accordion-header">0 - XWChat overview</h3>
+
+	<h4>Words to know</h4>
+	<div style="">
+
+	<p>To make this document easier to use, we'd like to first introduce a few words, used frequently, that are important when discussing chat applications.</p>
+	<ul>
+		<li><strong>Chat (noun):</strong> a real-time, online conversation between two or more people. EX: "The chat yesterday was very productive."
+		<li><strong>Chat (verb):</strong> participating in a real-time, online conversation between two or more people. EX: "Let's chat about this instead of having a long email chain."
+		<li><strong>Multi-User Chat (noun):</strong> a Chat that involves more than two people. Abb. MUC, Synonyms: Group Chat. EX: "We have a MUC scheduled for tomorrow at 13:00 EST, don't be late."
+		<li><strong>Chat server:</strong> this will refer to the software and Web address through which a chat client sends and receives messages. EX: "Tomorrow's MUC will be on our internal chat server, xmpp://conference.ourserver.example"
+		<li><strong>Chad ID:</strong> the unique address that identifies a person registered on a chat server, in the format "name"@"chat_server". You will use this to send messages to another person. Synonyms: JID. EX: "Add me to your contact list; my chat ID is matt@ourserver.example."
+		<li><strong>Contact:</strong> a person with a Chat ID, registered on a chat server, that can participate in chats. Synonyms: User. EX: "How many users are in your contact list?"
+		<li><strong>Contact List:</strong> a list that is maintained by your chat server and stores the Chat IDs of your contacts. EX: "I have 34 contacts saved in my contact list."
+		<li><strong>Contact Group:</strong> an object used to organize the contacts in your contact list. EX: "I have my contacts split into three groups: Family, Co-workers, and Clients."
+		<li><strong>XMPP:</strong> is an acronym for Extensible Messaging and Presence Protocol. It is a system that allows people to send each other chat messages on the Internet. Anyone who has an XMPP chat ID and is using a chat client (like XWChat) can communicate with other people who meet the same criteria.</ul>
+	</div>
+
+	<h4>The Contact List</h4>
+	<div style="min-height:450px;">
+	<img src="help/img/contact.png" />
+	<p>The contact list shows you the chat users you have established connections with. The list will tell you if they are available, away, or offline, and allows you to group your contacts to make finding them in your list easier. The contact list has a right-click menu for each contact, allowing you to perform actions including update their status, viewing their chat profile (vCard) information, or removing/updating them from/on your list. </p>
+	</div>
+
+	<h4>The chat window</h4>
+	<div style="min-height:320px;">
+	<img src="help/img/indv-chat.png">
+<p>Communication happens through the chat window. When you either left-click on a person in your contact list, right-click on the person and then choose "chat", or receive a message from another user, XWChat will open a chat window. From inside the chat window, you can:</p>
+<ul><li>Send and receive chat messages
+<li>Start a group chat with the person to whom you're chatting
+<li>Save a copy of the chat conversation, and
+<li>Interact with them through their user-context menu.</ul>
+
+<p>The group chat window allows you to talk with many people at once. The group chat window offers the same features as the one-on-one chat window, along with the ability to:</p>
+<ul><li>Invite additional participants
+<li>Set and change the group chat's status message, and
+<li>Change your display name.</ul>
+	</div>
+
+<h4>Settings</h4>
+	<div style="min-height:250px;">
+	<img src="help/img/settings.png">
+<p>XWChat offers a customizable chat experience free from the clutter presented in many popular clients. "Settings" allows a user to customize some of the ways they interact with XWChat. These settings include:</p>
+<ul><li>Chat Configuration
+	<ul><li>Automatically Archive Chats on the server: Will publish a copy of each chat you participate in to your account on the site.
+	<li>Show Empty Groups: Tells the contact list to show contact groups, even if you have no users in them.
+	<li>Show Offline Associates: By default, XWChat hides users in your contact list who are offline and inaccessible. You may change this default so that every person in your contact list is displayed, whether or not they are online.
+	<li>Show Send Buttons on Message and Group Chat: Striking the "Enter" key on your keyboard duplicates the function of the Send Button. Some users prefer to hide the send button so that they have a wider typing area in their Chat windows.
+	<li>Show Time stamps in Chat Windows: Selecting this option will show (next to the User name) the date/time each message in a conversation was sent or received.
+	<li>Client font size: This option increases or decreases the size of the text for all of the windows in XWChat. </ul>
+<li>Language Settings for Client: The language selected in this option tells XWChat what language you are chatting in, as well as the language in which you want XWChat to display the application's text.
+<li>Real-time Translation Configuration
+	<ul><li>Real-time Chat Translation: Use this option to tell XWChat if it should translate incoming text into another language.
+	<li>Current chat language: This is the language into which XWChat will translate incoming messages.</ul></ul>
+	</div>
+
+</div>
+
+
+
+<div id="tab3">
+<h3 class="ui-accordion-header">1 - Basic Use</h3>
+
+<h4>Open the client</h4>
+<div>
+<p>By default, site administrators are requested to include a "launch" button somewhere on their site. Often this will be the page that loads when you log in. Once you have loaded the "launch" button, mouse-click once and the chat application will open.</p>
+</div>
+
+<h4>Edit your Profile</h4>
+<div>
+<p>In XWChat, your profile, or "VCard", is accessed by clicking on your chat ID on the top of the contact list.</p>
+<p>In the Contact List, when you hover your mouse pointer over your chat ID, the window will display your Chat ID (i.e. joe@chat.someaddress.com). Click on your username, and a new window will open. It will be titled "Update VCard." Change or add information to the fields in the window. When you are finished, scroll to the bottom and click "Save."</p>
+<p>Your profile information is now updated and you may close the VCard window.</p>
+</div>
+
+<h4>Set your availability status</h4>
+<div>
+<p>Setting your availability status helps tell your contacts if you're available to chat with them. To change your availability status, first select your chat client window. Next, click on the status message below your user name. A panel will slide open revealing the pre-configured options available to you.</p>
+<p>You may chose one of the already-available options (Available, Chat, Away, Busy, or Invisible). Or, you may click on "Custom" in either the available row (green dot) or the not-available row (red dot). Enter the message you would like your chat contacts to see when they check on your availability, then press the "Enter" key.</p>
+<p>When finished (either by clicking on an option or pressing the "Enter" key after typing a custom message), the availability box will roll up and your new status will be displayed below your user name, as well as in your contacts' personal contact lists.</p>
+</div>
+
+<h4>Add a user to your contact list</h4>
+<div style="min-height:250px;">
+<img src="help/img/add-cont.png">
+<p>To add contacts to your list:</p>
+<ul><li>Launch the application.
+<li>Click on the link in the bottom-left of the chat roster, labeled "Add Contact".
+<li>Fill in their "Account name." This can be any chat account built on a technology called ejabberd. Jabber, Google Chat, your site, and many other Web services offer ejabberd chat accounts.
+<li>You may optionally list a display name for the contact.
+<li>Choose a group to list the new contact in.
+<li>Mouse-click "Add" to save the new contact.</ul>
+<p>The list will refresh and add the new contact to your contact list.</p>
+</div>
+
+<h4>Remove a contact from your contact list</h4>
+<div>
+<p>To remove a contact from your list:</p>
+<ul><li>Launch the application.
+<li>Right-click on the user you wish to remove from your contact list.
+<li>Click on the option "Remove."
+<li>Click "OK" in the alert window that opens.</ul>
+<p>The list will refresh and the user will no longer be in your contact list.</p>
+</div>
+
+<h4>Managing contact groups</h4>
+<div>
+To move a contact to a new contact group:
+<ul><li>Right click on the contact you want to move. A menu will open.
+<li>Locate "Update" and click the link.
+<li>If you want to move the contact to a group that already exists, scroll through the list next to "Group: " and click it.
+<li>If you want to move the contact to a new group,
+	<ul><li>Click the "New group" link.
+	<li>Type the name you want to give the new group.</ul>
+<li>Finally, click the "Update" button on the bottom of the "Update User Details" window.</ul>
+<p>The list will refresh and the user will be moved to the new group you selected.</p>
+</div>
+</div>
+
+<div id="tab4">
+<h3 class="ui-accordion-header">2 - The chat client and you</h3>
+<h4>Start a conversation</h4>
+<p>Open the chat application.</p>
+<ul><li>Once the application is open, you will see a "chat roster" with the names of your contacts.
+<li>Click on a contact name to open a message window, then click in the message field (white, wide rectangular box on the bottom of the window) and begin typing.
+<li>You may send your message by either striking the "Enter" key or by clicking "Send" to the right of the message field.</ul>
+
+
+<h4>Handling multiple windows</h4>
+<p>(Holding space for future feature)<p>
+
+
+<h4>Saving a chat conversation</h4>
+<p>Clicking "Save Chat Log" on top of the chat window allows you to save a copy of the conversation as a post on the site.</p>
+<ul><li>At the top of the window, click "Save Chat Log."
+<li>A browser page will load. Check that the list of attendees is displayed correctly, and that the parts of the chat conversation you wish to save are present in the body of the page.
+<li>Choose the applicable audiences, attach any files necessary, then click "Save" to publish the conversation.</ul>
+
+</div>
+
+
+<div id="tab5">
+<h3 class="ui-accordion-header">3 - Multi-User Chat (MUC)</h3>
+<h4>Join a MUC</h4>
+<div style="min-height:200px;">
+<img src="help/img/find-group.png">
+<ul><li>Click the [Group Chat] button on the bottom right of the window.
+<li>The chat server for your site will be preloaded in the "Server" field. Click "Get Rooms" to see the MUC rooms available to join.
+<ul><li>NOTE: If you wish to join a room in another chat server, you will need to replace the pre-loaded info with the address of the server you wish to join. You need to know this information to find rooms in a different server.</ul>
+<li>Left-click on a room in the generated list, then scroll to the bottom and click "Enter" to join the MUC.
+<li>Optional: If you question that a room is the MUC you are looking for, clicking "Info" after selecting a room will display some information about the room.
+<li>Optional: If you would like to see which users are in a room before entering it, clicking "Occupants" after selecting a room will display a list of the users currently chatting and their chat ID's.</ul>
+</div>
+
+<h4>Start a MUC</h4>
+<div style="min-height:260px;">
+<img src="help/img/group.png">
+<p>MUCs can be started two ways. If you start from the contact list:</p>
+<ul><li>Click the [Group Chat] button on the bottom right of the window.
+<li>Select the [Create] tab at the top of the group session window.
+<li>Enter a nickname, then at least a Room title for the chat room you wish to create and click the "create" button.
+<ul><li>NOTE: By default, the chat server will delete a MUC room if no participants are using it. To keep a room, even if it has zero participants, select "yes" next to the option "Make room persistent:".</ul>
+<li>When creating a Group Chat room, many options are presented. Feel free to set any options available to you. Once a group is created, you may not edit these settings, so if you wish to change settings in the future, you will need to remove the group from the chat server and re-create it with your new settings.</ul>
+If you start from a one-on-one chat window:
+<ul><li>Click the [Group Chat] button on the bottom right of the chat window
+<li>A group chat session will be created, with you and the person you were chatting as group chat session members.</ul>
+</div>
+
+<h4>Inviting more participants</h4>
+<div style="min-height:260px;">
+<img src="help/img/group-invite.png">
+<p><em>NOTE: You can find the Chat ID for users in your contact list by right-clicking on their name and choosing "Info." The Chat ID will be next to "User Details" at the top of the new window.</em></p>
+<p>From within a MUC, you can send invitations to other people and ask them to join the conversation. To do so:</p>
+<ul><li>Move your cursor to the Participants list. Click the link titled "Invite" at the top.
+<li>If you know the person's chat ID:
+	<ul><li>Enter the Chat ID of the person to whom you would like to send the invitation.
+	<li>Optionally, you may enter a message that will accompany the invitation.</ul>
+<li>If you do not know the person's chat ID:
+<ul><li>You may try searching for persons that have accounts on the site. Click "Search for users".
+<li>Enter information you know about the person into the provided fields.
+	<ul><li>NOTE: You will have the greatest chance of success if you start with general information (family name) and add info to narrow the search results.</ul>
+<li>Click on the "select" icon (looks like a check mark) to select a user.</ul>
+<li>Click "Send Invite" and the user will be alerted to your invitation to join the MUC.</ul>
+</div>
+
+</div>
+
+
+<div id="tab6">
+<h3 class="ui-accordion-header">4 - Frequently-Asked Questions</h3>
+<p><em>NOTE: For functions that would require you to be using XWChat, please assume that the first step is opening the client.</em></p>
+
+<h4>How do I change a MUC status message?</h4>
+<ul><li>Locate the MUC address in the top-left corner of the window.
+<li>Click the link "Change" to reveal the status message edit field.
+<li>Delete the current message and type a new message into the field.
+<li>Strike the [enter] key on your keyboard to submit the new status message.</ul>
+
+
+<h4>How do I set my presence status?</h4><p>There are five pre-configured options you may choose:</p><ul><li>Available: This tells others you are connected to the Internet and logged on to XWChat.<li>Chat: You are connected to the Internet/logged on to XWChat and ready for conversations.<li>Away: You are connected to the Internet, logged on to XWChat but are not at your computer.<li>Busy: You are connected to the Internet, logged on to XWChat but you are not available for conversations.<li>Invisible: You are connected to the Internet, logged on to XWChat and can see which of your contacts are online. You will appear offline to your other contacts. <li>Offline: You are not logged on to XWChat.</ul>
+<p>You may also enter a custom status message by clicking "Custom", typing your custom status message in the provided box, and striking the "Enter" key on your keyboard.</p>
+
+
+<h4>How do I automatically archive my chat conversations?</h4><p>To turn on automatic chat archiving:</p><ul><li>Click the “Settings” link on the top right of the chat client.<li>Click the checkbox next to the option “Automatically Archive Chats on the server.” <li>Close the Settings window.</ul>
+
+
+<h4>How do I show contact groups that have no members in my contact list?</h4><p>To show empty contact groups:</p><ul><li>Click the “Settings” link on the top right of the chat client.<li>Click the checkbox next to the option “Show Empty Groups.”<li>Close the Settings window.</ul>
+
+
+<h4>How do I show/hide contacts who are offline or not logged into chat?</h4><p>To show offline contacts:</p><ul><li>Click the “Settings” link on the top right of the chat client.<li>Click the checkbox next to the option “Show Offline Associates.”<li>Close the Settings window.</ul>
+</div>
+
+</div id="accordion">
+</body>
+</html>

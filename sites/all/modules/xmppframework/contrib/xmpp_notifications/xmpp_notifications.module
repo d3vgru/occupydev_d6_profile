@@ -1,0 +1,280 @@
+<?php
+/**
+ * @file
+ * XMPP Notifications. Notifications method plug-in
+ */
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_notifications_perm() {
+  return array('subscribe to presence');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_notifications_menu() {
+  $items['admin/messaging/notifications/xmpp'] = array(
+    'title'            => 'XMPP Subscriptions',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('xmpp_notifications_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type'             => MENU_LOCAL_TASK,
+  );
+  $items['user/%user/notifications/xmpp'] = array(
+    'title'            => 'XMPP',
+    'page callback'    => 'xmpp_notifications_page_xmpp',
+    'page arguments'   => array(1),
+    'access callback'  => 'xmpp_notifications_access',
+    'access arguments' => array(1, 'subscribe to presence'),
+    'weight'           => 10,
+    'type'             => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Menu access callback
+ */
+function xmpp_notifications_access($account, $perm) {
+  global $user;
+
+  if (($account->uid && $account->uid == $user->uid && user_access($perm)) ||
+      (user_access('administer notifications') && user_access($perm, $account))) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Admin settings form
+ */
+function xmpp_notifications_settings_form() {
+  $form['xmpp'] = array('#type' => 'fieldset', '#title' => t('XMPP subscriptions'), '#weight' => -10, '#collapsible' => TRUE);
+  $form['xmpp']['xmpp_notifications_pager'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Subscription Page Size'),
+    '#default_value' => variable_get('xmpp_notifications_pager', 20),
+    '#description'   => t('Number of subscriptions to display on the notifications xmpp tab in the user account'),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_user()
+ */
+function xmpp_notifications_user($op, &$edit, &$account, $category = NULL) {
+  global $user;
+
+  switch ($op) {
+    case 'view':
+      // make sure the user is a valid user and that it is not their account they are viewing
+      if ($user->uid && $user->uid != $account->uid) {
+        $subscriptions = notifications_user_get_subscriptions($user->uid, 'xmpp', 'uid', $account);
+        if (count($subscriptions)) {
+          foreach ($subscriptions as $sid => $object) {
+            $title = t("Unsubscribe from: !name's xmpp presence", array('!name' => $account->name));
+            $props = notifications_get_link('unsubscribe', array('sid' => $sid));
+          }
+        } else {
+          $title = t("Subscribe to: !name's xmpp presence", array('!name' => $account->name));
+          $props = notifications_get_link('subscribe', array('type' => 'xmpp', 'confirm' => TRUE, 'fields' => array('uid' => $account->uid)));
+        }
+        $account->content['summary']['xmpp_notifications'] = array(
+          '#title' => t('XMPP Subscription'),
+          '#value' => l($title , $props['href'], $props['options']),
+          '#type' => 'item',
+        );
+      }
+      break;
+  }
+}
+
+
+/**
+ * Implementation of hook_notifications()
+ */
+function xmpp_notifications_notifications($op, $arg0, $arg1 = NULL, $arg2 = NULL) {
+  switch ($op) {
+    case 'names':
+      $subs = &$arg0;
+      if ($subs->event_type == 'xmpp') {
+        $subs->type_name = t('XMPP');
+        if (!empty($subs->fields['uid'])) {
+          $user = user_load(array('uid' => $subs->fields['uid']));
+          $subs->names['uid'] = t('%jid', array('%jid' => $user->xmpp_user['jid']));
+        }
+      }
+      break;
+    case 'subscription types':
+      $types['xmpp'] = array(
+        'event_type' => 'xmpp',
+        'title' => t('XMPP'),
+        'access' => 'subscribe to presence',
+        'page' => 'xmpp_notifications_page_xmpp',
+        'fields' => array('uid'),
+      );
+      return $types;
+    case 'query':
+      // $arg2 is the user object in this case
+      if ($arg0 == 'event' && $arg1 == 'xmpp') {
+        $event = $arg2;
+        $params[] = array(
+          'join' => "LEFT JOIN {xmpp_user} xu ON f.field = 'uid' AND f.value = CAST(xu.uid AS CHAR)",
+          'where' => 'xu.uid = %d',
+          'args' => array($event->uid),
+        );
+        return $params;
+      }
+      if ($arg0 == 'user' && $arg1 == 'xmpp') {
+        $params[] = array(
+          'where' => "f.field = '%s' AND f.value = %d",
+          'args' => array('uid', $arg2->uid),
+        );
+        return $params;
+      }
+      break;
+    case 'event load': // $arg0 is event
+      $event = &$arg0;
+      $load = array();
+      if ($event->type == 'xmpp') {
+        if (!empty($event->params['uid'])) {
+          $event->objects['account'] = user_load(array('uid' => $event->params['uid']));
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_token_list(). Documents the individual
+ * tokens handled by the module.
+ */
+function xmpp_notifications_token_list($type = 'all') {
+  $tokens = array();
+  if ($type == 'account' || $type == 'all') {
+    $tokens['account']['account-name'] = t('User account name');
+    $tokens['account']['account-url'] = t('User account url');
+  }
+  return $tokens;
+}
+
+/**
+ * Implementation of hook_token_values()
+ */
+function xmpp_notifications_token_values($type, $object = NULL, $options = array()) {
+  switch ($type) {
+    case 'account':
+      if ($account = $object) {
+        $values['account-name'] = check_plain($account->name);
+        $values['account-url'] = url('user/'. $account->uid, array('absolute' => TRUE));
+        return $values;
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_messaging()
+ */
+function xmpp_notifications_messaging($op, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL, $arg4 = NULL) {
+  switch ($op) {
+    case 'message groups':
+      $help = t('The header and footer will be taken from Notification events');
+      // Generic notifications event
+      $info['notifications-event-xmpp-available'] = array(
+        'module' => 'xmpp_notifications',
+        'name' => t('Notifications for xmpp user coming online'),
+        'help' => $help,
+      );
+      $info['notifications-event-xmpp-offline'] = array(
+        'module' => 'xmpp_notifications',
+        'name' => t('Notifications for xmpp user going offline'),
+        'help' => $help,
+      );
+      return $info;
+    case 'message keys':
+      $type = $arg1;
+      switch ($type) {
+        case 'notifications-event-xmpp-available':
+        case 'notifications-event-xmpp-offline':
+          // Some parts will be re-used from 'notifications-event' group
+          // So we specify only subject and main message
+          return array(
+            'subject' => t('Subject'),
+            'main' => t('Content'),
+          );
+        break;
+      }
+      break;
+    case 'messages':
+      $type = $arg1;
+      // Event notifications
+      switch ($type) {
+        case 'notifications-event-xmpp-available':
+          return array(
+            'subject' => t('XMPP Notification for [account-name]'),
+            'main' => array(
+              '[account-name] has just come online via XMPP',
+            ),
+          );
+        case 'notifications-event-xmpp-offline':
+          return array(
+            'subject' => t('XMPP Notification for [account-name]'),
+            'main' => array(
+              '[account-name] has just went offline via XMPP',
+            ),
+          );
+      }
+      break;
+    case 'tokens':
+      $type = explode('-', $arg1);
+      $tokens = array();
+      // These are the token groups that will be used for this module's messages
+      if ($type[0] == 'notifications' && $type[1] == 'event') {
+        if ($type[2] == 'xmpp') {
+          $tokens[] = 'user';
+          $tokens[] = 'account';
+        }
+      }
+      return $tokens;
+  }
+}
+
+/**
+ * List the xmpp subscriptions for the user
+ */
+function xmpp_notifications_page_xmpp($account = NULL) {
+  if (is_null($account)) {
+    global $user;
+    $account = $user;
+  }
+
+  // query string for node subscriptions
+  $query = "SELECT s.*, f.value AS uid, xu.jid AS xmpp_jid, xu.status AS xmpp_status, xu.message AS xmpp_message
+            FROM {notifications} s
+                 INNER JOIN {notifications_fields} f ON s.sid = f.sid
+                 LEFT JOIN {xmpp_user} xu ON f.value = CAST(xu.uid AS CHAR)
+            WHERE s.uid = %d AND s.type = 'xmpp' AND s.event_type = 'xmpp' AND s.conditions = 1 AND f.field = 'uid'
+            ORDER BY xmpp_status, xmpp_message";
+  $results = pager_query($query, variable_get('xmpp_notifications_pager', 20), 0, NULL, $account->uid);
+
+  $subscriptions = $list = array();
+  while ($sub = db_fetch_object($results)) {
+    $subscriptions[$sub->uid] = $sub;
+    $list[$sub->uid] = l($sub->xmpp_jid, 'user/'. $sub->uid) . ' ['. $sub->xmpp_status .']';
+  }
+
+  if (empty($subscriptions)) {
+    $output = t('You are not currently subscribed to any users xmpp presence');
+  }
+  else {
+    $output = t('You are currently subscribed to the following users xmpp presence:');
+    $defaults = array('type' => 'xmpp', 'event_type' => 'xmpp');
+    $options = array('title' => t('Chat ID [Current Status]'));
+    $output .= drupal_get_form('notifications_user_form', $account, 'xmpp', $subscriptions, $list, $defaults, $options);
+    $output .= theme('pager', NULL, variable_get('xmpp_notifications_pager', 20));
+  }
+  return $output;
+}

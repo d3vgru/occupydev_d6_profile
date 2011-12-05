@@ -1,0 +1,14 @@
+; $Id: xmpp_xmlrpc.info,v 1.1.2.1.2.15 2009/09/25 20:51:05 darrenferguson Exp $
+name = XMPP-XMLRPC
+package = "XMPP Framework"
+description = Provides the xmlrpc url for use by other modules
+core = 6.x
+dependencies[] = xmppframework
+project = "xmpp"
+
+; Information added by drupal.org packaging script on 2009-09-25
+version = "6.x-2.1"
+core = "6.x"
+project = "xmppframework"
+datestamp = "1253912264"
+

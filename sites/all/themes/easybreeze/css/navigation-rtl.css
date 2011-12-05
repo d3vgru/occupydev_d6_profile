@@ -1,0 +1,49 @@
+/**
+ * @file
+ * RTL companion for the navigation.css file.
+ */
+
+
+/*
+ * Navigation bar
+ */
+#navigation ul /* Primary and secondary links */ {
+  text-align: right;
+}
+
+#navigation li /* A simple method to get navigation links to appear in one line. */ {
+  float: right;
+}
+
+/*
+ * Primary and Secondary menu links
+ */
+#main-menu {
+  float: left;
+}
+
+#main-menu li {
+  float: right;
+}
+
+#main-menu li a,
+#main-menu li a:visited {
+  border-left: none;
+  border-right: 4px solid #858383;
+}
+
+#main-menu li a:hover,
+#main-menu li a:active,
+#main-menu li a.active {
+  border-left: none;
+  border-right: 4px solid #facd00;
+}
+
+#secondary-menu {
+  left: 10px;
+  right: auto;
+}
+
+#secondary-menu li {
+  float: right;
+}

@@ -1,0 +1,188 @@
+/**
+ * @file
+ * Eyes-catching Candy Styling
+ */
+
+
+/*
+ * Lists
+ *
+ * We need to standardize the list item indentation.
+ */
+ul li.leaf {
+  line-height: 1.6em;
+  list-style-image: url(../images/menu-leaf.png);
+}
+
+ul li.expanded {
+  line-height: 1.6em;
+  list-style-image: url(../images/menu-expanded.png);
+}
+
+ul li.collapsed {
+  line-height: 1.6em;
+  list-style-image: url(../images/menu-collapsed.png); /* LTR */
+}
+
+/*
+ * Content
+ */
+tr.even /* Some tables have rows marked even or odd. */ {
+  background-color: #fff;
+}
+
+tr.even td.active {
+  background-color: #e6f1f7;
+}
+
+tr.odd {
+  background-color: #f5f5f5;
+}
+
+tr.odd td.active {
+  background-color: #ddecf5;
+}
+
+tr.drag {
+  background-color: #fffff0;
+}
+
+tr.drag-previous {
+  background-color: #ffd;
+}
+
+a.tabledrag-handle:hover {
+  border: none;
+}
+
+/**
+ * Special image mapping
+ */
+ul.links li.blog_usernames_blog {
+  background: url(../images/user.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.book_add_child {
+  background: url(../images/report-add.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.comment_comments,
+ul.links li.comment_forbidden {
+  background: url(../images/comment.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.comment_add,
+ul.links li.comment_new_comments,
+ul.links li.comment_reply {
+  background: url(../images/comment-add.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.comment_delete {
+  background: url(../images/comment-delete.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.comment_edit {
+  background: url(../images/comment-edit.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.node_read_more {
+  background: url(../images/article.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.upload_attachments {
+  background: url(../images/briefcase.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.statistics_counter {
+  background: url(../images/graph-bar.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.book_printer,
+ul.links li.print_html {
+  background: url(../images/printer.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.print_mail {
+  background: url(../images/mail-closed-send.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+ul.links li.print_pdf {
+  background: url(../images/file-pdf.png) left center no-repeat; /* LTR */
+  padding-left: 18px; /* LTR */
+}
+
+/**
+ * Aggregator.module
+ */
+#aggregator {
+  margin-top: 1em;
+}
+
+#aggregator .feed-item-title {
+  font-size: 160%;
+  line-height: 130%;
+}
+
+#aggregator .feed-item {
+  border-bottom: 1px solid #ccc;
+  margin: -1.5em 0 1.75em;
+  padding: 1.5em 0;
+}
+
+#aggregator .feed-item-categories {
+  font-size: .92em;
+}
+
+#aggregator .feed-item-meta {
+  font-size: .92em;
+  color: #ccc;
+}
+
+/**
+ * Menu.module
+ */
+tr.menu-disabled {
+  opacity: 0.5;
+}
+
+/**
+ * Tagadelic.module
+ */
+a.tagadelic:link {
+  color: #25771f;
+}
+
+a.tagadelic:visited {
+  color: #123b0f;
+}
+
+a.tagadelic:hover {
+  background: #e7fee5;
+  color: #007898;
+}
+
+/**
+ * Vertical tab module
+ */
+div.vertical-tabs ul.vertical-tabs-list li {
+  list-style-image: none;
+}
+
+/**
+ * CiviCRM
+ */
+#civicrm-menu {
+  position: relative !important;
+  z-index: auto;
+}

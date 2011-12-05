@@ -1,0 +1,126 @@
+<?php
+// $Id: xmpp_roster.module,v 1.1.2.1.2.16 2009/09/25 20:51:05 darrenferguson Exp $
+
+/**
+ * Implementation of hook_help().
+ */
+function xmpp_roster_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/modules#name':
+      $output = t('xmpp_roster');
+      break;
+    case 'admin/modules#description':
+      $output = t('Provides the ability to synchronize your xmpp server roster with your user relationships');
+      break;
+    case 'admin/help#xmpp_vcard':
+      $output = '<p>'. t('The xmpp_roster module provides the ability to synchronize your xmpp roster based off your user relationships') .'</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function xmpp_roster_perm() {
+  return array('synchronize xmpp roster');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function xmpp_roster_menu() {
+  $items['user/%user/xmpp_roster'] = array(
+    'title' => 'XMPP Roster',
+    'description' => 'Display the xmpp roster against the user relationships',
+    'page callback' => 'xmpp_roster_synchronize',
+    'page arguments' => array(1),
+    'access callback' => 'xmpp_roster_permissions',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  $items['user/%user/xmpp_roster/both'] = array(
+    'title' => 'both',
+    'description' => 'Show those in both user relationships and the xmpp roster',
+    'page callback' => 'xmpp_roster_synchronize',
+    'page arguments' => array(1, 'both'),
+    'access callback' => 'xmpp_roster_permissions',
+    'access arguments' => array(1),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  $items['user/%user/xmpp_roster/relationships'] = array(
+    'title' => 'relationships',
+    'description' => 'Show those in user relationship associates only',
+    'page callback' => 'xmpp_roster_synchronize',
+    'page arguments' => array(1, 'relationships'),
+    'access callback' => 'xmpp_roster_permissions',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  $items['user/%user/xmpp_roster/xmpp'] = array(
+    'title' => 'xmpp',
+    'description' => 'Show those in xmpp roster associates only',
+    'page callback' => 'xmpp_roster_synchronize',
+    'page arguments' => array(1, 'xmpp'),
+    'access callback' => 'xmpp_roster_permissions',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  $items['xmpp_roster/add'] = array(
+    'title' => 'Add',
+    'description' => 'Add the relationship from your xmpp roster',
+    'page callback' => 'xmpp_roster_add',
+    'access callback' => 'xmpp_roster_permissions',
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  $items['xmpp_roster/delete'] = array(
+    'title' => 'Delete',
+    'description' => 'Delete the relationship from your xmpp roster',
+    'page callback' => 'xmpp_roster_delete',
+    'access callback' => 'xmpp_roster_permissions',
+    'type' => MENU_CALLBACK,
+    'file' => 'xmpp_roster.internal.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function xmpp_roster_theme() {
+  return array(
+    'xmpp_roster_associations' => array(
+      'arguments' => array('associations' => NULL, 'view' => NULL),
+      'file' => 'xmpp_roster.theme.inc'
+    ),
+  );
+}
+
+/**
+ * Access permission function to determine if we will display the tab or not
+ *
+ * @param $user
+ *      User object
+ */
+function xmpp_roster_permissions($account = NULL) {
+  global $user;
+  if (is_null($account)) {
+    $account = $user;
+  }
+  // Verify if the user is the same person whose account we are looking at and if they have the pertinent permissions
+  if ($account->uid == $user->uid && user_access('synchronize xmpp roster') && isset($account->xmpp_user['jid']) && function_exists('user_relationships_load')) {
+    return TRUE;
+  }
+  // XMPP Admin hence will allow them so see all XMPP information since they can in theory do anything as the admin
+  if (user_access('administer xmpp framework') && isset($account->xmpp_user['jid']) && function_exists('user_relationships_load')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+

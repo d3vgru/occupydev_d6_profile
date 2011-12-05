@@ -1,0 +1,500 @@
+<?php
+
+// setup
+if ($libpath = libraries_get_path('php-prowl')) {
+  require_once($libpath . '/class.php-prowl.php');
+}
+
+// Constants
+define('PROWL_DEBUG', False);
+define('PROWL_VERY_LOW', -2);
+define('PROWL_LOW', -1);
+define('PROWL_MODERATE', 0);
+define('PROWL_HIGH', 1);
+define('PROWL_EMERGENCY', 2);
+define('PROWL_APPLICATION', variable_get('site_name', 'Drupal'));
+
+/// Hook Implementations 
+
+/**
+* Display help and module information
+* @param path which path of the site we're displaying help
+* @param arg array that holds the current path as would be returned from arg() function
+* @return help text for the path
+*/
+function prowl_help($path, $arg) {
+  $output = '';  //declare your output variable
+  switch ($path) {
+    case "admin/help#prowl":
+      $output = '<p>'.  t("This module provides Drupal status notifications and an API for the Prowl iPhone push notification client.") .'</p>';
+      break;
+  }
+  return $output;
+} // function prowl_help
+
+/**
+  * Valid permissions for this module
+  * @return array An array of valid permissions for the prowl module
+  */
+function prowl_perm() {
+    return array('receive prowl notifications', 'administer prowl notifications', 'view prowl settings');
+} // function prowl_perm()
+
+/**
+ * Prowl administration settings Menu
+ * @return array administration menu array
+ */
+function prowl_admin() {
+
+  // check for curl
+  if (!in_array('curl', get_loaded_extensions())) {
+    drupal_set_message('The cURL extension was not detected - you will need to install it before the prowl module will work - see http://www.php.net/curl', 'error');
+  } else {
+    $curl_version = (curl_version());
+    if ($curl_version['ssl_version'] == '') {
+      drupal_set_message('The cURL SSL extensions were not detected - you will need to install phpCurl with SSL support before the prowl module will work - see http://www.php.net/curl', 'error');
+    }
+  }
+
+  $form = array();
+
+  $form['api_key_info'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('API Key settings'), 
+    '#weight' => -1, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => FALSE,
+  );
+  $form['api_key_info']['prowl_admin_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API key for the prowl account to which to send system notifications.'),
+    '#default_value' => variable_get('prowl_admin_api_key', ''),
+    '#size' => 40,
+    '#maxlength' => 40,
+    '#description' => t("Go to your <a href='https://www.prowlapp.com/api_settings.php'>prowl API keys page</a> to view/generate your API key."),
+    '#required' => TRUE,
+  );
+  $form['api_key_info']['test_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send a test notification'),
+    '#submit' => array('prowl_send_admin_notification_test'),
+  );
+  $form['system_notifications'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('System Notification Settings'), 
+    '#weight' => 0, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => FALSE,
+  );
+  $form['system_notifications']['prowl_send_module_updates'] = array(
+    '#type' => 'select',
+    '#title' => t('Send module status update information'),
+    '#default_value' => variable_get('prowl_send_module_updates', 'none'),
+    '#options' => array(
+      'none' => t('None'),
+      'sec' => t('Modules with security updates only'),
+      'all' => t('All modules with updates'),
+    ),
+    '#description' => t('Send push notifications when Drupal core and contributed module updates are available'),
+  );
+  // disable module updates menu if update status module is disabled
+  if (!module_exists('update')) {
+    $form['prowl_send_module_updates']['#disabled'] = True;
+    $form['prowl_send_module_updates']['#description'] = t('You must enable the update status module to use this feature.');
+  }
+
+  return system_settings_form($form);
+} // function prowl_admin()
+ 
+/**
+ * Implementation of hook_menu()
+ */
+function prowl_menu() {
+
+  $items = array();
+
+  $items['admin/settings/prowl'] = array(
+    'title' => 'Prowl push notifications',
+    'description' => 'Set up Prowl push notifications here.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('prowl_admin'),
+    'access arguments' => array('administer prowl notifications'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function prowl_cron() {
+  if (module_exists('update') && variable_get('prowl_send_module_updates', 'none') != 'none') {
+    // cribbed most of this from update.module
+    $frequency = variable_get('prowl_send_update_frequency', 1);
+    $interval = 60 * 60 * 24 * $frequency;
+    if ((time() - variable_get('prowl_update_last_check', 0)) > $interval) {
+      $status = update_requirements('runtime');
+      $message_text = '';
+      $priority = PROWL_MODERATE;
+      $notify_all = (variable_get('prowl_send_module_updates', 'none') == 'all');
+      foreach (array('core', 'contrib') as $report_type) {
+        $type = 'update_'. $report_type;
+        if (isset($status[$type]['severity'])
+            && ($status[$type]['severity'] == REQUIREMENT_ERROR || ($notify_all && $status[$type]['reason'] == UPDATE_NOT_CURRENT))) {
+          if ($status[$type]['severity'] == REQUIREMENT_ERROR) $priority = PROWL_HIGH;
+          $message_text = $status[$type]['title'] . "\n";
+          $message_text .= $status[$type]['description'] . "\n";
+          $message_text .= "\n\n";
+        }   
+      }
+      if ($message_text .= '') {
+        // Construct URL for updates page.
+        $path = 'admin/reports/updates';
+        $url = url($path, array('absolute' => TRUE));
+        // Send prowl notification to admin(s).
+        prowl_send_admin_notification($message_text, 'updates available', $priority, PROWL_APPLICATION, $url);
+      }
+      variable_set('prowl_update_last_check', time());
+    }
+  }
+}
+
+/**
+ * Implementation of hook_action_info().
+ */
+function prowl_action_info() {
+  return array(
+    'prowl_actions_admin_notification_action' => array(
+      'type' => 'system',
+      'description' => t('Send a tokenized prowl notification to the admin user'),
+      'configurable' => TRUE,
+      'hooks' => array(
+        'nodeapi' => array('view', 'insert', 'update', 'delete'),
+        'comment' => array('view', 'insert', 'update', 'delete'),
+        'user' => array('view', 'insert', 'update', 'delete', 'login'),
+        'taxonomy' => array('insert', 'update', 'delete'),
+      ),
+    ),
+    'prowl_actions_any_user_notification_action' => array(
+      'type' => 'system',
+      'description' => t('Send a tokenized prowl notification to any prowl user'),
+      'configurable' => TRUE,
+      'hooks' => array(
+        'nodeapi' => array('view', 'insert', 'update', 'delete'),
+        'comment' => array('view', 'insert', 'update', 'delete'),
+        'user' => array('view', 'insert', 'update', 'delete', 'login'),
+        'taxonomy' => array('insert', 'update', 'delete'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Return a form definition so the Send notification to admin action can be configured.
+ *
+ * @param $context
+ *   Default values (if we are editing an existing action instance).
+ * @return
+ *   Form definition.
+ */
+function prowl_actions_admin_notification_action_form($context) {
+  if (!isset($context['event'])) {
+    $context['event'] = '';
+  }
+  if (!isset($context['message'])) {
+    $context['message'] = '';
+  }
+  if (!isset($context['url'])) {
+    $context['priority'] = '';
+  }
+  if (!isset($context['priority'])) {
+    $context['priority'] = 0;
+  }
+
+  $form['event'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Event'),
+    '#default_value' => $context['event'],
+    '#size' => '20',
+    '#maxlength' => '1024',
+    '#description' => t('The message event type.'),
+  );
+  $form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#default_value' => $context['message'],
+    '#cols' => '80',
+    '#rows' => '20',
+    '#description' => t('The message that should be sent.'),
+  );
+  $form['url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL'),
+    '#default_value' => $context['url'],
+    '#size' => '30',
+    '#maxlength' => '2048',
+    '#description' => t('An optional URL to send with the notification, can be tokenized. (example: [site-url][node-path])'),
+  );
+  $form['priority'] = array(
+    '#type' => 'select',
+    '#title' => t('Message priority level'),
+    '#default_value' => $context['priority'],
+    '#options' => array(
+      -2 => t('Very low'),
+      -1 => t('Low'),
+      0 => t('Moderate'),
+      1 => t('High'),
+      2 => t('Emergency'),
+    ),
+    '#description' => t('Set the priority level of this notification'),
+  );
+
+  $form['help'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('Placeholder tokens'),
+    '#description' => t("The following placeholder tokens can be used in to generate the URL path. Some tokens may not be available, depending on the context in which the action is triggered."),
+  );
+
+  $form['help']['tokens'] = array(
+    '#value' => theme('token_help', 'all'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for prowl_actions_admin_notification_action_form()
+ */
+function prowl_actions_admin_notification_action_submit($form, $form_state) {
+  $form_values = $form_state['values'];
+  // Process the HTML form to store configuration. The keyed array that
+  // we return will be serialized to the database.
+  $params = array(
+    'event'   => $form_values['event'],
+    'message'   => $form_values['message'],
+    'priority'   => $form_values['priority'],
+    'url'   => $form_values['url'],
+  );
+  return $params;
+}
+
+/**
+ * Return a form definition so the Send notification to any user action can be configured.
+ *
+ * @param $context
+ *   Default values (if we are editing an existing action instance).
+ * @return
+ *   Form definition.
+ */
+function prowl_actions_any_user_notification_action_form($context) {
+  if (!isset($context['event'])) {
+    $context['event'] = '';
+  }
+  if (!isset($context['message'])) {
+    $context['message'] = '';
+  }
+  if (!isset($context['priority'])) {
+    $context['priority'] = 0;
+  }
+  if (!isset($context['url'])) {
+    $context['url'] = '';
+  }
+  if (!isset($context['api_key'])) {
+    $context['api_key'] = '';
+  }
+  if (!isset($context['send_test'])) {
+    $context['send_test'] = False;
+  }
+
+  $form['api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API Key'),
+    '#default_value' => $context['api_key'],
+    '#size' => '40',
+    '#maxlength' => '40',
+    '#description' => t('The API Key of the prowl user to which to send the notification.'),
+  );
+  $form['send_test'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send a test notification when submitting this form.'),
+  );
+  $form['event'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Event'),
+    '#default_value' => $context['event'],
+    '#size' => '20',
+    '#maxlength' => '1024',
+    '#description' => t('The message event type.'),
+  );
+  $form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#default_value' => $context['message'],
+    '#cols' => '80',
+    '#rows' => '20',
+    '#description' => t('The message that should be sent.'),
+  );
+  $form['url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL'),
+    '#default_value' => $context['url'],
+    '#size' => '30',
+    '#maxlength' => '2048',
+    '#description' => t('An optional URL to send with the notification, can be tokenized. (example: [site-url][node-path])'),
+  );
+  $form['priority'] = array(
+    '#type' => 'select',
+    '#title' => t('Message priority level'),
+    '#default_value' => $context['priority'],
+    '#options' => array(
+      -2 => t('Very low'),
+      -1 => t('Low'),
+      0 => t('Moderate'),
+      1 => t('High'),
+      2 => t('Emergency'),
+    ),
+    '#description' => t('Set the priority level of this notification'),
+  );
+
+  $form['help'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('Placeholder tokens'),
+    '#description' => t("The following placeholder tokens can be used in to generate the URL path. Some tokens may not be available, depending on the context in which the action is triggered."),
+  );
+
+  $form['help']['tokens'] = array(
+    '#value' => theme('token_help', 'all'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for prowl_actions_admin_notification_action_form()
+ */
+function prowl_actions_any_user_notification_action_submit($form, $form_state) {
+  $form_values = $form_state['values'];
+  // Process the HTML form to store configuration. The keyed array that
+  // we return will be serialized to the database.
+  $params = array(
+    'event'   => $form_values['event'],
+    'message'   => $form_values['message'],
+    'priority'   => $form_values['priority'],
+    'api_key'   => $form_values['api_key'],
+    'url'   => $form_values['url'],
+  );
+  if ($form_values['send_test']) {
+    if (prowl_send_any_user_notification_test($form_values['api_key'])) {
+      drupal_set_message(t('Sent test notification to the owner of API key: "%apikey"', array('%apikey' => $form_values['api_key'])), 'status');
+    } else {
+      drupal_set_message(t('There was an error when attempting to send a notification to the owner of API key: "%apikey"', array('%apikey' => $form_values['api_key'])), 'warning');
+    }
+  }
+  return $params;
+}
+
+/// Internal/API Functions
+
+/**
+ * Implementation of a configurable Drupal action.
+ * Sends a configurable prowl notification to the admin user's phone
+ * @return boolean success
+ */
+function prowl_actions_admin_notification_action(&$object, $context = array()) {
+  $context['global'] = NULL;
+  if (is_numeric($context['comment']->nid) && empty($context['node'])) {
+    $context['node'] = node_load(array('nid' => $context['comment']->nid));
+  }
+  if (!empty($context['node']) && empty($context['user'])) {
+    $context['user'] = user_load(array('uid' => $context['node']->uid));
+  }
+  if (empty($context['user']) && !empty($context['account'])) {
+    $context['user'] = $context['account'];
+  }
+  $context['message'] = token_replace_multiple($context['message'], $context);
+  $context['url'] = token_replace_multiple($context['url'], $context);
+  return prowl_send_admin_notification($context['message'], $context['event'], $context['priority'], PROWL_APPLICATION, $context['url']);
+}
+
+/**
+ * Implementation of a configurable Drupal action.
+ * Sends a configurable prowl notification to the admin user's phone
+ * @return boolean success
+ */
+function prowl_actions_any_user_notification_action(&$object, $context = array()) {
+  $context['global'] = NULL;
+  if (is_numeric($context['comment']->nid) && empty($context['node'])) {
+    $context['node'] = node_load(array('nid' => $context['comment']->nid));
+  }
+  if (!empty($context['node']) && empty($context['user'])) {
+    $context['user'] = user_load(array('uid' => $context['node']->uid));
+  }
+  if (empty($context['user']) && !empty($context['account'])) {
+    $context['user'] = $context['account'];
+  }
+  $context['message'] = token_replace_multiple($context['message'], $context);
+  $context['url'] = token_replace_multiple($context['url'], $context);
+  return prowl_send_any_user_notification($context['api_key'], $context['message'], $context['event'], $context['priority'], PROWL_APPLICATION, $context['url']);
+}
+
+/**
+ * Send prowl notification to site admin(s)
+ * @return boolean success
+ */
+function prowl_send_admin_notification($message, $event, $priority = PROWL_MODERATE, $application = PROWL_APPLICATION, $url = NULL) {
+  $success = True;
+  if ($adminapikey = variable_get('prowl_admin_api_key', '')) {
+    prowl_send_any_user_notification($adminapikey, $message, $event, $priority, $application, $url);
+  }
+} // prowl_send_admin_notification()
+
+/**
+ * Send prowl notification to site admin(s)
+ * @return boolean success
+ */
+function prowl_send_any_user_notification($apikey, $message, $event, $priority = PROWL_MODERATE, $application = PROWL_APPLICATION, $url = NULL) {
+  $success = True;
+  if (isset($apikey) && strlen($apikey) == 40) {
+    $prowl = new Prowl();
+      $prowl->setApiKey($apikey);
+      $response = $prowl->add($application,$event,$priority,$message,$url);
+
+      // Log errors if any are returned.
+      if (!isset($response->success)) {
+        watchdog('prowl', 'Push Notification Error: %error', array('%error' => print_r($response, TRUE)), WATCHDOG_ERROR);
+        $success = False;
+      }
+      if (PROWL_DEBUG) {
+        watchdog('prowl', 'api key: %apikey | priority: %priority | message: %message | event: %event | application: %application', array('%apikey' => $apikey, '%message' => $message, '%priority' => $priority, '%event' => $event, '%application' => $application), WATCHDOG_ERROR);
+      }
+  } else {
+    $success = False;
+  }
+  return $success;
+} // prowl_send_any_user_notification()
+
+/**
+ * Send test prowl notification to site admin(s)
+ * @return boolean success
+ */
+function prowl_send_admin_notification_test() {
+  return prowl_send_admin_notification('mic check 1 2', 'notification test');
+} // prowl_send_admin_notification_test()
+
+/**
+ * Send test prowl notification to given API key
+ * @return boolean success
+ */
+function prowl_send_any_user_notification_test($apikey) {
+  if (isset($apikey) && strlen($apikey) == 40) {
+    return prowl_send_any_user_notification($apikey, 'mic check 1 2', 'notification test');
+  } else {
+    return False;
+  }
+
+} // prowl_send_any_user_notification_test()

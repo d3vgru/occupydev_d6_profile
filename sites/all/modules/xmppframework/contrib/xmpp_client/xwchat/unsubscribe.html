@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>UnSubscribe Request</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript">
+    var pWin = window.opener || window;
+    // adding the style sheet based off the information we have in the client settings
+    document.write('<link rel="stylesheet" type="text/css" href="' + pWin.XC.xcfontsize + '" />');
+    var from = JQ(document).getUrlParam('from');
+    // accepting the subscription offer
+    function xcAcceptUnsubscription() {
+      pWin.xcUnsubscribed(from);
+      window.close();
+    }
+    // declining the subscription offer
+    function xcDeclineUnsubscription() {
+      pWin.xcSubscribed(from, null, null, false);
+      window.close();
+    }
+
+    JQ(document).ready(function() {
+      JQ('#jid').val(from);
+    });
+
+    JQ(window).unload(function(){
+      try { pWin.xcWinClose(pWin.xcDec(self.name)); } catch (e) {}
+    });
+  </script>
+ </head>
+ <body id="xcUnsubscribe">
+   <div id="xcChat">
+     <div id="xcHeaderWrapper">
+       <div id="xcHeader" class="clearfix">
+         <div class="xcTitle" style="float:left">
+           <script type="text/javascript">
+             document.write(pWin.xcT('Unsubscribe Request'));
+           </script>
+         </div>
+         <a href="#" onclick="window.close()" class="close right">Close</a>
+       </div>
+     </div>
+
+     <div id="xcWrapper">
+       <div id="xcContent">
+         <form id="unsubscribe_form" name="unsubscribe_form">
+           <script type="text/javascript">
+             var str = '<div class="xcFieldWrapper text_field">' +
+                        '<label for="jid" id="jid_lbl" class="xcLabel" title="' + pWin.xcT('JID of the person the request is from') + '">' + pWin.xcT('From') + '</label>' +
+                        '<input type="text" id="jid" name="jid" value="" disabled />' +
+                        '</div>' +
+                        '<div class="xcFieldWrapper button xcSubmit">' +
+                        '<input type="button" id="accept_button" value="' + pWin.xcT('Accept') + '" class="xcButton" onClick="xcAcceptUnsubscription();" />' +
+                        '<input type="button" id="decline_button" value="' + pWin.xcT('Decline') + '" class="xcButton" onClick="xcDeclineUnsubscription();" />' +
+                        '</div>';
+             document.write(str);
+           </script>
+         </form>
+         <div id="msg" class="xcMessage"></div>
+       </div>
+     </div>
+
+     <div id="xcFooterContainer">
+       <div id="xcFooter">
+       </div>
+     </div>
+
+
+   </div>
+
+ </body>
+</html>

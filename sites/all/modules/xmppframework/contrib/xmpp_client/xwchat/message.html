@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Person to Person Messaging</title>
+  <script type="text/javascript" src="jquery.pack.js"></script>
+  <script type="text/javascript" src="window_manager.js"></script>
+  <script type="text/javascript" src="jqueryplugins/jquery-ui-personalized-1.5.2.min.js"></script>
+  <script type="text/javascript" src="src/xmlextras.js"></script>
+  <script type="text/javascript" src="src/jsextras.js"></script>
+  <script type="text/javascript" src="src/JSJaCBuilder.js"></script>
+  <script type="text/javascript" src="src/JSJaCPacket.js"></script>
+  <script type="text/javascript" src="message.js"></script>
+</head>
+<body id="xcMessage">
+  <div id="xcChat">
+
+    <div id="xcTabs" class="clearfix"></div>
+
+    <div id="xcContentWrapper">
+      <div id="xcHeaderWrapper">
+        <div id="xcHeader" class="clearfix">
+          <ul class="xcLinks xcMessageMenu">
+            <li id="xcAddUserContactLink">
+              <script type="text/javascript">
+               document.write('<a href="#" id="addusercontactbutton" onclick="xcAddUserContact();">' + pWin.xcT('Add Contact') + '</a>');
+              </script>
+            </li>
+            <li id="xcSaveChatLogLink">
+              <script type="text/javascript">
+                document.write('<a href="#" id="post_button" onclick="xcPostChat();">' + pWin.xcT('Save Chat Log') + '</a>');
+              </script>
+            </li>
+            <li id="xcMUCLink">
+              <script type="text/javascript">
+               document.write('<a href="javascript:xcMUCChatInitiate();">' + pWin.xcT('Group Chat') + '</a>');
+              </script>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="xcWrapper" onscroll="xcScrollSave(this.scrollTop);">
+        <div id="xcContent">
+          <table width="100%" border="0" cellspacing="0" cellpadding="2">
+            <tr>
+              <td style="padding: 5px 5px 3px 5px;"><div id="msg_pane" class="xcMsgPane"></div></td>
+              <td style="padding: 5px 5px 3px 5px;"><div id="translated_msg_pane" class="xcMsgPane"></div></td>
+            </tr>
+          </table>
+        </div>
+        <div id="msg" class="xcMessage"></div>
+      </div>
+
+      <div id="xcFooterWrapper">
+        <div id="xcFooter">
+          <div id="xcMsgContainer" class="clearfix">
+            <form name="msgForm" onSubmit="xcMsgSend();" action="javascript:;">
+             <script type="text/javascript">
+               if (pWin.XC.xc_sendbutton == 1) {
+                 document.write('<div style="position: absolute; top: 5px; right: 5px;"><input type="submit" name="send_button" id="send_button" value="' + pWin.xcT('Send') + '" class="xcMsgSendButton xcButton" /></div>');
+               };
+             </script>
+             <textarea name="body" id="body" class="xcMsgBody"></textarea>
+             <input type="hidden" name="jid" id="jid" />
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="xcHiddenArea"></div>
+
+</body>
+</html>
