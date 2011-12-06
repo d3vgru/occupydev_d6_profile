@@ -1,9 +1,10 @@
+// $Id: og.js,v 1.9.2.3 2010/01/24 14:44:56 amitaibu Exp $
 
 // Content type form
 Drupal.behaviors.og_content_type = function() {
   // Disable the group limit textarea if the content type is not a standard group post
   $('input[name="og_content_type_usage"]').click(function(){
-    if (!$('#edit-og-content-type-usage-group-post-standard').attr('checked') && !$('#edit-og-content-type-usage-group-post-wiki').attr('checked')) {
+    if (!$('#edit-og-content-type-usage-group-post-standard').attr('checked')) {
       $('#edit-og-max-groups').attr('disabled','disabled');
     } else {
       $('#edit-og-max-groups').removeAttr('disabled');
@@ -11,7 +12,7 @@ Drupal.behaviors.og_content_type = function() {
   });
   
   // Initial check to see if content type is standard group post
-  if (!$('#edit-og-content-type-usage-group-post-standard').attr('checked') && !$('#edit-og-content-type-usage-group-post-wiki').attr('checked')) {
+  if (!$('#edit-og-content-type-usage-group-post-standard').attr('checked')) {
     $('#edit-og-max-groups').attr('disabled','disabled');
   };
 }

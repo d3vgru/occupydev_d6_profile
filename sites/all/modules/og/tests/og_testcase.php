@@ -1,4 +1,5 @@
 <?php
+// $Id: og_testcase.php,v 1.10.4.1 2009/04/09 21:14:22 weitzman Exp $
 
 /**
  * @file
@@ -13,16 +14,13 @@ class OgTestCase extends DrupalWebTestCase {
    *   The content type name.
    * @param $selective
    *   The group's visibility (e.g. open, moderated, etc').
-   * @param $args
-   *   Other node fields to be saved with the node object.
    * @return
    *   The newly created node id.
    */
-  function addOgGroup($type, $selective = OG_OPEN, $args = array()) {
-    $edit = array();
+  function addOgGroup($type, $selective = OG_OPEN) {
+  	$edit = array();
     $edit['og_description'] = $this->randomName(16);
     $edit['og_selective'] = $selective;
-    $edit = array_merge($edit, $args);
 
     // Keys that should be present when the node is loaded.
     $keys = array(
@@ -34,10 +32,8 @@ class OgTestCase extends DrupalWebTestCase {
       'og_language',
       'og_private',
     );
-    $keys = array_merge($keys, array_keys($args));
-
     $og_type = t('Group node');
-    return $this->_addOgContent($type, $og_type, $edit, $keys);
+    return $this->_addOgContent($type, $og_type, $edit, $keys);   	
   }
 
   /**

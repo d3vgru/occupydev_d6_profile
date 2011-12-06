@@ -1,4 +1,5 @@
 <?php
+// $Id: og.activity.inc,v 1.1.2.1 2010/02/21 17:32:35 amitaibu Exp $
 
 /**
  * @file:
@@ -33,7 +34,7 @@ function og_activity_grants($activity) {
 /**
  * Implementation of hook_activity_access_grants().
  */
-function og_activity_access_grants($account) {
+function og_actvity_access_grants($account) {
   $grants = array();
 
   // Account is granted access to all activities within the groups account

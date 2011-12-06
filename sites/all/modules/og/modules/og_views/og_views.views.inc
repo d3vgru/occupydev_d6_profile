@@ -1,4 +1,5 @@
 <?php
+// $Id: og_views.views.inc,v 1.13.4.11 2010/03/04 07:28:59 amitaibu Exp $
 
 /**
  * Implementation of hook_views_handlers().
@@ -257,14 +258,14 @@ function og_views_data_og() {
       'help' => t('Displays the language selected for a given group.'),
       'real field' => 'og_language',
       'field' => array(
-        'handler' => 'views_handler_field_locale_language',
+        'handler' => 'views_handler_field_node_language',
         'click sortable' => TRUE,
       ),
       'filter' => array(
-        'handler' => 'views_handler_filter_locale_language',
+        'handler' => 'views_handler_filter_node_language',
       ),
       'argument' => array(
-        'handler' => 'views_handler_argument_locale_language',
+        'handler' => 'views_handler_argument_node_language',
       ),
     );
   }

@@ -1,4 +1,5 @@
 <?php
+// $Id: og.pages.inc,v 1.1.2.5 2010/03/14 07:57:59 amitaibu Exp $
 
 /**
  * @file
@@ -18,21 +19,21 @@
    if (!empty($form_state['post'])) {
      drupal_set_message(t('Your message will be sent to all members of this group.'));
    }
-
+   
    $form['subject'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Subject'),
+    '#type' => 'textfield', 
+    '#title' => t('Subject'), 
     '#size' => 70,
     '#maxlength' => 250,
-    '#description' => t('Enter a subject for your message.'),
+    '#description' => t('Enter a subject for your message.'), 
     '#required' => TRUE,
   );
   $form['body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Body'),
+    '#type' => 'textarea', 
+    '#title' => t('Body'), 
     '#rows' => 5,
     '#cols' => 90,
-    '#description' => t('Enter a body for your message.'),
+    '#description' => t('Enter a body for your message.'), 
     '#required' => TRUE
   );
   $form['send'] = array('#type' => 'submit', '#value' => t('Send message'));
@@ -70,7 +71,7 @@ function og_broadcast_form_submit($form, &$form_state) {
   // that this is a bulk message.
   module_invoke_all('og', 'user broadcast', $node->nid, $recipients, $message);
   drupal_set_message(format_plural(count($recipients), '1 message queued for delivery.', '@count messages queued for delivery.'));
-
+  
 }
 
 function og_manage($group_node) {
@@ -78,7 +79,7 @@ function og_manage($group_node) {
 
   $bc = og_get_breadcrumb($group_node);
   drupal_set_breadcrumb($bc);
-
+  
   return drupal_get_form('og_manage_form', $group_node);
 }
 
@@ -117,11 +118,11 @@ function og_manage_form_submit($form, &$form_state) {
 function og_create_admin_confirm($form_state, $node, $account) {
   $form['node'] = array('#type' => 'value', '#value' => $node);
   $form['account'] = array('#type' => 'value', '#value' => $account);
-  return confirm_form($form,
+  return confirm_form($form, 
            t('Are you sure you want to make !name a group administrator for the group %title?', array('!name' => theme('username', $account), '%title' => $node->title)),
-           "og/users/$node->nid",
+           "og/users/$node->nid", 
            ' ',
-           t('Confirm'),
+           t('Confirm'), 
            t('Cancel'));
 }
 
@@ -138,7 +139,7 @@ function og_create_admin_confirm_submit($form, &$form_state) {
   $variables = array(
     '@group' => $node->title,
     '!group_url' => url("node/$node->nid", array('absolute' => TRUE)),
-    '@username' => strip_tags(theme('username', $account))
+    '@username' => $account->name
   );
 
   $message = array(
@@ -157,11 +158,11 @@ function og_create_admin_confirm_submit($form, &$form_state) {
 function og_remove_admin_confirm($form_state, $node, $account) {
   $form['gid'] = array('#type' => 'value', '#value' => $node->nid);
   $form['account'] = array('#type' => 'value', '#value' => $account);
-  return confirm_form($form,
+  return confirm_form($form, 
     t('Are you sure you want to remove !name as a group administrator for the group %title?', array('!name' => theme('username', $account), '%title' => $node->title)),
     "og/users/$node->nid",
-    ' ',
-    t('Remove'),
+    ' ', 
+    t('Remove'), 
     t('Cancel')
   );
 }
@@ -180,17 +181,17 @@ function og_remove_admin_confirm_submit($form, &$form_state) {
 function og_invite_form($form_state, $node) {
   $bc = og_get_breadcrumb($node);
   drupal_set_breadcrumb($bc);
-
+  
   $max = variable_get('og_email_max', 10);
 
   $form['mails'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Email addresses or usernames'),
+    '#type' => 'textarea', 
+    '#title' => t('Email addresses or usernames'),  
     '#description' => t('Enter up to %max email addresses or usernames. Separate multiple addresses by commas or new lines. Each person will receive an invitation message from you.', array('%max' => $max))
   );
   $form['pmessage'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Personal message'),
+    '#type' => 'textarea', 
+    '#title' => t('Personal message'), 
     '#description' => t('Optional. Enter a message which will become part of the invitation email.')
   );
   $form['op'] = array('#type' => 'submit', '#value' => t('Send invitation'));
@@ -255,7 +256,7 @@ function og_invite_form_submit($form, &$form_state) {
     '!group_url' => url("og/subscribe/$node->nid", array('absolute' => TRUE)),
     '@body' => $form_state['values']['pmessage'],
   );
-
+  
   global $user;
   $from = $user->mail;
   foreach ($emails as $mail) {
@@ -268,7 +269,7 @@ function og_subscribe($node, $uid = NULL) {
   global $user;
   if (is_null($uid)) {
     if ($user->uid) {
-      $account = drupal_clone($user);
+      $account = $user;
     }
     else {
       $dest = drupal_get_destination();
@@ -289,7 +290,7 @@ function og_subscribe($node, $uid = NULL) {
     drupal_access_denied();
     exit();
   }
-
+  
   // Only admins can add another member.
   if ($account->uid != $user->uid && !og_is_group_admin($node)) {
     drupal_access_denied();
@@ -313,18 +314,18 @@ function og_confirm_subscribe($form_state, $gid, $node, $account) {
   $form['account'] = array('#type' => 'value', '#value' => $account);
   if ($node->og_selective == OG_MODERATED) {
     $form['request'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Additional details'),
+      '#type' => 'textarea', 
+      '#title' => t('Additional details'), 
       '#description' => t('Add any detail which will help an administrator decide whether to approve or deny your membership request.')
     );
   }
   else {
     $form['request'] = array(
-      '#type' => 'value',
+      '#type' => 'value', 
       '#value' => '',
    );
  }
- return confirm_form($form,
+ return confirm_form($form, 
                 t('Are you sure you want to join the group %title?', array('%title' => $node->title)),
                 'node/'. $node->nid, ' ',
                 t('Join'), t('Cancel'));
@@ -339,7 +340,7 @@ function og_confirm_subscribe_submit($form, &$form_state) {
       drupal_set_message($return['message']);
   }
   $form_state['redirect'] = 'node/'. $form_state['values']['gid'];
-}
+} 
 
 
 /**
@@ -351,7 +352,7 @@ function og_confirm_unsubscribe($form_state, $group_node, $account) {
   $form['account'] = array('#type' => 'value', '#value' => $account);
   if ($account->uid == $user->uid) {
     $message = t('Are you sure you want to leave the group %title?', array('%title' => $group_node->title));
-    $confirm_text = t("Leave");
+    $confirm_text = t("Leave"); 
   }
   else {
     $message = t('Are you sure you want to remove !name from the group %title?', array('!name' => theme('username', $account), '%title' => $group_node->title));
@@ -373,12 +374,12 @@ function og_confirm_unsubscribe_submit($form, &$form_state) {
     og_get_subscriptions($account->uid, 1, TRUE); // Clear cache.
     $user = user_load(array('uid' => $user->uid));
     $message = t('You left the group %group.', array('%group' => $group_node->title));
-  }
+  } 
   else {
     $message = t('%user removed from %group.', array('%user' => $account->name, '%group' => $group_node->title));
   }
   drupal_set_message($message);
-
+  
   // Determine where to go next. GHP if accessible, or else site front page.
   $form_state['redirect'] = node_access('view', $group_node) ? "node/". $group_node->nid : '';
 }
@@ -391,19 +392,17 @@ function og_add_users($form_state, $group_node) {
     '#cols' => 70,
     // No autocomplete b/c user_autocomplete can't handle commas like taxonomy. pls improve core.
     // '#autocomplete_path' => 'user/autocomplete',
-    '#description' => t('Add one or more usernames in order to associate users with this group. Separate multiple usernames by commas or new lines.'),
-    '#required' => TRUE,
+    '#description' => t('Add one or more usernames in order to associate users with this group. Multiple usernames should be separated by a comma.'),
+    '#element_validate' => array('og_add_users_og_names_validate'),
   );
   $form['op'] = array('#type' => 'submit', '#value' => t('Add users'));
   $form['gid'] = array('#type' => 'value', '#value' => $group_node->nid);
   return $form;
 }
 
-/**
- * VAlidate hanler for the add users form.
- */
-function og_add_users_validate($form, $form_state) {
-  $names = preg_split('/[\r\n,]+/', $form_state['values']['og_names']);
+// An #element_validate handler
+function og_add_users_og_names_validate($form, $form_state) {
+  $names = explode(',', $form_state['values']['og_names']);
   foreach ($names as $name) {
     $account = user_load(array('name' => trim($name)));
     if (isset($account->uid)) {
@@ -422,7 +421,7 @@ function og_add_users_validate($form, $form_state) {
 
 function og_add_users_submit($form, &$form_state) {
   // Safest option is to do a select, filter existing members, then insert.
-  $names = preg_split('/[\r\n,]+/', $form_state['values']['og_names']);
+  $names = explode(',', $form_state['values']['og_names']);
   foreach ($names as $name) {
     $account = user_load(array('name' => trim($name)));
     if ($account->uid) {
@@ -460,6 +459,6 @@ function og_page_activity() {
     $rows[] = array(array('data' => t('No groups available.'), 'colspan' => 6));
   }
   return theme('table', $header, $rows);
-
+  
 }
 

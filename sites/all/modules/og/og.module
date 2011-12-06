@@ -1,4 +1,5 @@
 <?php
+// $Id: og.module,v 1.628.4.34 2010/02/21 17:32:35 amitaibu Exp $
 
 // Selective groups states. chosen by the group admin
 define ('OG_OPEN', 0);
@@ -24,9 +25,6 @@ define('OG_DELETE_ORPHANS', 1);
 define('OG_DELETE_MOVE_NODES', 2);
 define('OG_DELETE_MOVE_NODES_MEMBERSHIPS', 3);
 
-/**
- * Implementation of hook_help().
- */
 function og_help($path, $arg) {
   if ($path) {
     switch ($path) {
@@ -289,7 +287,7 @@ function og_menu_access_unsubscribe($group_node, $account = NULL) {
   global $user;
 
   if (empty($account)) {
-    $account = drupal_clone($user);
+    $account = $user;
   }
 
   // Unsubscribee must already be a member or pending member.
@@ -381,24 +379,19 @@ function og_is_group_member($gid, $include_admins = TRUE, $uid = NULL) {
   * @return boolean
   */
 function og_is_group_admin($node, $account = NULL) {
-  if (empty($account)) {
-    global $user;
-    $account = drupal_clone($user);
-  }
-
-  // Modules can cause us to arrive here before og_init() has fired.
-  // See http://drupal.org/node/285696
-  if ($account->uid && !isset($account->og_groups)) {
-    // Reload the user object.
-    $account = user_load($account->uid);
+  if (is_null($account)) {
+    $account = $GLOBALS['user'];
+    // Adventurous modules can cause us to arrive here before og_init() has fired.
+    // See http://drupal.org/node/285696
+    if ($account->uid && !isset($account->og_groups)) {
+      $account = user_load(array('uid' => $account->uid));
+    }
   }
 
   return og_is_group_type($node->type) && (user_access('administer nodes', $account) || !empty($account->og_groups[$node->nid]['is_admin']));
 }
 
-/**
- * Implementation of hook_theme().
- */
+// An implementation of hook_theme().
 function og_theme() {
   return array(
     'opml_icon' => array('arguments' => array('url')),
@@ -479,7 +472,10 @@ function og_init() {
 
   // Set group context and language if needed.
   if ($group_node = og_determine_context()) {
+    og_set_theme($group_node);
     og_set_group_context($group_node);
+    // TODOL: is this too late for menu links and such?
+    og_set_language($group_node);
   }
 }
 
@@ -500,52 +496,14 @@ function og_exit() {
 
 /**
  *  Set the language for the page based on group's language. Will have no effect
- * if user has set a personal language or a URL language domain/prefix.
+ * if user has set a personal language.
  * @param string $node
  *   A group node object.
- * @see language_initialize().
  */
 function og_set_language($node) {
-  // If group specifies language, and the URL does not:
   if ($node->og_language) {
-    // Configured presentation language mode.
-    $mode = variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE);
-    // Get a list of enabled languages.
-    $languages = language_list('enabled');
-    $languages = $languages[1];
-
-    // Set to true if the url holds a language designator.
-    $url_set = FALSE;
-    // Check whether the URL holds a language domain/prefix.
-    switch ($mode) {
-      case LANGUAGE_NEGOTIATION_DOMAIN:
-        foreach ($languages as $language) {
-          $parts = parse_url($language->domain);
-          if (!empty($parts['host']) && ($_SERVER['HTTP_HOST'] == $parts['host'])) {
-            $url_set = TRUE;
-            break;
-          }
-        }
-        break;
-      case LANGUAGE_NEGOTIATION_PATH:
-        // Uses $_REQUEST as language_initialize removes prefix from $_GET
-        $args = isset($_REQUEST['q']) ? explode('/', $_REQUEST['q']) : array();
-        $prefix = array_shift($args);
-        // Search prefix within enabled languages.
-        foreach ($languages as $language) {
-          if (!empty($language->prefix) && $language->prefix == $prefix) {
-            $url_set = TRUE;
-            break;
-          }
-        }
-        break;
-    }
-
-    if ($url_set) {
-      return;
-    }
-
-    $og_language = $languages[$node->og_language];
+    $map = language_list();
+    $og_language = $map[$node->og_language];
     global $user;
     $user_language = user_preferred_language($user, $og_language);
     if ($og_language == $user_language) {
@@ -655,7 +613,7 @@ function og_determine_context() {
 function og_determine_context_get_group($node, $account = NULL) {
   if (empty($account)) {
     global $user;
-    $account = drupal_clone($user);
+    $account = $user;
   }
   if (og_is_group_type($node->type)) {
     $group_node = $node;
@@ -697,8 +655,7 @@ function og_get_group_context() {
 }
 
 /**
- * API function; Set the group context for the current request, including theme
- * and language if they are configured for the group.
+ * API function; Set the group context for the current request.
  * Modules may set this as needed.
  * This context is originally set during og_determine_context().
  * @param $node
@@ -719,16 +676,6 @@ function og_set_group_context($node = NULL, $clear = FALSE) {
 
   if (!empty($node) && og_is_group_type($node->type)) {
     $stored_group_node = $node;
-    og_set_theme($node);
-    // When setting the language, avoid doing so if we are on a node page
-    // and the language of the node is different to the language of the
-    // group. This covers the case when the site doesn't have a prefix for
-    // the default language, particularly if the same node is posted in
-    // multiple groups.
-    $current_node = menu_get_object();
-    if (!$current_node || (!og_is_group_type($current_node->type) && $current_node->language == $node->og_language)) {
-      og_set_language($node);
-    }
   }
   return !empty($stored_group_node) ? $stored_group_node : NULL;
 }
@@ -886,7 +833,7 @@ function og_subscribe_user($gid, $account, $request = NULL) {
         if (!empty($admins)) {
           $variables = array(
             '@group' => $node->title,
-            '@username' => strip_tags(theme('username', $account)),
+            '@username' => $account->name,
             '!approve_url' => url("og/approve/$node->nid/$account->uid", array('absolute' => TRUE)),
             '!group_url' => url("og/users/$node->nid", array('absolute' => TRUE)),
             '@request' => $request,
@@ -936,11 +883,6 @@ function og_subscribe_user($gid, $account, $request = NULL) {
  * @return array
  **/
 function og_get_subscriptions($uid, $min_is_active = 1, $reset = FALSE) {
-  // Anonymous users are not able to subscribe to groups.
-  if (!$uid) {
-    return array();
-  }
-
   static $subscriptions = array();
 
   if ($reset) {
@@ -1392,7 +1334,7 @@ function og_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
         $variables = array(
           '@group' => $node->title,
           '!group_url' => url("node/$node->nid", array('absolute' => TRUE)),
-          '@username' => strip_tags(theme('username', $account)),
+          '@username' => $account->name,
           '!invite_url' => url("og/invite/$node->nid", array('absolute' => TRUE))
         );
 
@@ -1456,6 +1398,9 @@ function og_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
                           ),
           );
         }
+
+        $node->body .= '<div class="og_rss_groups">'. theme('links', $append). '</div>';
+        $node->teaser .= '<div class="og_rss_groups">'. theme('links', $append). '</div>';
         return $ret;
       }
       break;
@@ -1618,9 +1563,7 @@ function og_form_node_delete_confirm_alter(&$form, &$form_state) {
   }
 }
 
-/**
- * Make sure max number of groups is positive integer.
- */
+// Make sure max number of groups is positive integer
 function og_node_type_form_validate($form, &$form_state) {
   $max_number = $form_state['values']['og_max_groups'];
   if ($max_number != '' && (!is_numeric($max_number) || $max_number <= 0 || floor($max_number) != $max_number)) {
@@ -1628,9 +1571,7 @@ function og_node_type_form_validate($form, &$form_state) {
   }
 }
 
-/**
- * Rebuild node access if usage has changed.
- */
+// Rebuild node access if Usage has changed
 function og_node_type_form_submit($form, &$form_state) {
   $type = $form_state['values']['type'];
   $var = 'og_content_type_usage';
@@ -1643,9 +1584,7 @@ function og_node_type_form_submit($form, &$form_state) {
   unset($form_state['values']['old_'. $var]);
 }
 
-/**
- * Form alter the node delete form for a group.
- */
+// Form_alter() the node_delete form for a group
 function og_node_delete_group_form(&$form) {
   $options[OG_DELETE_NOTHING] = t('Do nothing.');
   $options[OG_DELETE_ORPHANS] = t("Delete all group posts which don't also belong to another group.");
@@ -1677,28 +1616,21 @@ function og_node_delete_group_form(&$form) {
     // Memberships should move before the group node is deleted.
     // Group nodes wait until afterwards so that our custom redirect works.
     array_unshift($form['#submit'], 'og_node_delete_move_memberships');
+    $form['#submit'][] = 'og_node_delete_confirm_submit';
   }
-  $form['#submit'][] = 'og_node_delete_confirm_submit';
   $form['actions']['submit']['#value'] = t('Delete group');
 }
 
-/**
- * Alter the node delete form for a non-group.
- *
- * Redirect back to group home page after a delete.
- */
+// Alter the node_delete form for a non-group.
+// Redirect back to group home page after a delete.
 function og_node_delete_nongroup_form(&$form) {
   if ($groupnode = og_get_group_context()) {
     $form['#redirect'] = "node/$groupnode->nid";
   }
 }
 
-/**
- * Return all node ids belonging to a group. No access control.
- *
- * If you are retrieving for displaying, you may want to use an embedded View
- * instead of this function.
- */
+// Return all node ids belonging to a group. No access control.
+// If you are retrieving for displaying, you may want to use an embedded View instead of this function.
 function og_group_child_nids($group_nid) {
   $result = db_query('SELECT oga.nid FROM {og_ancestry} oga WHERE oga.group_nid = %d', $group_nid);
   $child_nids = array();
@@ -1708,9 +1640,7 @@ function og_group_child_nids($group_nid) {
   return $child_nids;
 }
 
-/**
- * Submit handler for node delete form. Handles deletes to group nodes.
- */
+// Submit handler for node delete form. Handles deletes to group nodes.
 function og_node_delete_confirm_submit($form, &$form_state) {
   $deleted_group_nid = $form_state['values']['nid'];
   $target_group_nid = $form_state['values']['target'];
@@ -1746,11 +1676,8 @@ function og_node_delete_confirm_submit($form, &$form_state) {
   }
 }
 
-/**
- * Submit handler for group node delete form.
- *
- * Move memberships to target group after a deletion of a group node. No access control.
- */
+// Submit handler for group node delete form.
+// Move memberships to target group after a deletion of a group node. No access control.
 function og_node_delete_move_memberships($form, &$form_state) {
   if ($form_state['values']['verb'] == OG_DELETE_MOVE_NODES_MEMBERSHIPS) {
     $deleted_group_nid = $form_state['values']['nid'];
@@ -1767,9 +1694,7 @@ function og_node_delete_move_memberships($form, &$form_state) {
   }
 }
 
-/**
- * Return an array containing all groups - suitable for a form item.
- */
+// Return an array containing all groups - suitable for a form item.
 function og_all_groups_options() {
   list($types, $in) = og_get_sql_args();
   $sql = "SELECT n.nid, n.title FROM {node} n WHERE n.type $in AND n.status = 1 ORDER BY n.title ASC";
@@ -1781,16 +1706,13 @@ function og_all_groups_options() {
 }
 
 /**
- * Iterate over a set of groups and separate out those that are inaccessible to
- * the current user.
+ * Iterate over a set of groups and separate out those that are inaccessible to the current user.
+ * Don't return groups of which the current user is a member, unless $exclude_joined=FALSE
+ * is passed. Used in og_form_add_og_audience() and node.tpl.php.
  *
- * Don't return groups of which the current user is a member,
- * unless $exclude_joined=FALSE is passed. Used in og_form_add_og_audience()
- * and node.tpl.php.
- *
- * @return
+ * @return array
  *   A two element array containing 'accessible' and 'inaccessible' keys.
- */
+ **/
 function og_node_groups_distinguish($groups_names_both, $exclude_joined = TRUE) {
   global $user;
 
@@ -1820,9 +1742,8 @@ function og_node_groups_distinguish($groups_names_both, $exclude_joined = TRUE) 
 }
 
 /**
- * Helper method to add OG audience fields to a given form.
- *
- * This lives in a separate function from og_form_alter() so it can be shared
+ * Helper method to add OG audience fields to a given form. This is
+ * lives in a separate function from og_form_alter() so it can be shared
  * by other OG contrib modules.
  */
 function og_form_add_og_audience(&$form, &$form_state) {
@@ -1918,11 +1839,7 @@ function og_form_add_og_audience(&$form, &$form_state) {
   );
 
   if (module_exists('content')) {
-    $form['og_nodeapi']['#type'] = 'fieldset';
-    $form['og_nodeapi']['#title'] = t('Groups');
     $form['og_nodeapi']['#group'] = 'additional_settings';
-    $form['og_nodeapi']['#collapsible'] = TRUE;
-    $form['og_nodeapi']['#collapsed'] = empty($groups);
     $form['og_nodeapi']['#weight'] = content_extra_field_weight($form['#node']->type, 'og_nodeapi');
   }
 
@@ -2291,17 +2208,13 @@ function theme_opml_icon($url) {
   }
 }
 
-/**
- * Return a block with the latest groups.
- */
 function og_block_new() {
   list($types, $in) = og_get_sql_args();
-  $selective = OG_OPEN;
-  $sql = "SELECT COUNT(*) FROM {node} n INNER JOIN {og} og ON n.nid = og.nid WHERE og.og_directory = 1 AND n.type $in AND n.status = 1 AND og.og_selective = $selective";
+  $sql = "SELECT COUNT(*) FROM {node} n INNER JOIN {og} og ON n.nid = og.nid WHERE og.og_directory=1 AND n.type $in AND n.status = 1 AND moderate = 0";
   $cnt = db_result(db_query(db_rewrite_sql($sql), $types));
   if ($cnt > 0) {
     $max = variable_get('og_block_cnt_3', 10);
-    $sql = "SELECT n.nid, n.title FROM {node} n INNER JOIN {og} og ON n.nid = og.nid WHERE n.status = 1 AND n.type $in AND og.og_directory = 1 AND og.og_selective = $selective ORDER BY nid DESC";
+    $sql = "SELECT n.nid, n.title FROM {node} n INNER JOIN {og} og ON n.nid = og.nid WHERE n.status = 1 AND n.type $in AND og.og_directory=1 AND moderate = 0 ORDER BY nid DESC";
     $result = db_query_range(db_rewrite_sql($sql), $types, 0, $max);
     $output = node_title_list($result);
     if ($cnt > $max) {
@@ -2318,7 +2231,6 @@ function og_block_details() {
 
   // Only display group details if we have a group context.
   if (($node = og_get_group_context()) && node_access('view', $node)) {
-    $account = user_load($node->uid);
     list($txt, $subscription) = og_subscriber_count_link($node);
     if ($subscription == 'active' || user_access('administer nodes')) {
       $links = module_invoke_all('og_create_links', $node);
@@ -2327,7 +2239,7 @@ function og_block_details() {
         $links['invite'] = l(t('Invite friend'), "og/invite/$node->nid");
       }
       $links['subscribers'] = $txt;
-      $links['manager'] = t('Manager: !name', array('!name' => theme('username', $account)));
+      $links['manager'] = t('Manager: !name', array('!name' => theme('username', $node)));
 
       // Site admins get a Join link if they are not yet subscribed.
       $subscribe = isset($subscription) && og_is_group_member($node->nid, FALSE) ? l(t('My membership'), "og/manage/$node->nid") : og_subscribe_link($node);
