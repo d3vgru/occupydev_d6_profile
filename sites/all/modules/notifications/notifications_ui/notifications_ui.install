@@ -1,5 +1,18 @@
 <?php
-// $Id: notifications_ui.install,v 1.1.2.4.2.3.2.2 2010/07/24 11:27:42 jareyero Exp $
+// $Id: notifications_ui.install,v 1.1.2.4.2.3 2010/03/12 13:28:09 jareyero Exp $
+
+/**
+ * Implementation of hook_install()
+ * 
+ * Set up some variables so basic options are enabled out of the box
+ */
+function notifications_ui_install() {
+  variable_set('notifications_ui_user', array('page' => 'page', 'create' => 'create'));
+  variable_set('notifications_ui_node', array('links' => 'links', 'teaserlinks' => 'teaserlinks', 'block' => 'block'));
+  variable_set('notifications_ui_account_options', array('links' => 'links', 'block' => 'block'));
+  // The most common options for notifications_content: thread, nodetype, author
+  variable_set('notifications_ui_types', array('thread' => 'thread', 'nodetype' => 'nodetype', 'author' => 'author'));
+}
 
 /**
  * Implementation of hook_uninstall()
@@ -7,8 +20,8 @@
 function notifications_ui_uninstall() {
   // Some global variables
   variable_del('notifications_ui_per_type');
-  variable_del('notifications_ui_user_options');
-  variable_del('notifications_ui_node_options');
+  variable_del('notifications_ui_user');
+  variable_del('notifications_ui_node');
   variable_del('notifications_ui_account_options');
   // Just delete variables for subscription types and node types  
   variable_del('notifications_ui_types');
@@ -35,19 +48,4 @@ function notifications_ui_update_6001() {
   $ret[] = update_sql("UPDATE {blocks} SET cache = ". BLOCK_NO_CACHE ." WHERE module = 'notifications_ui'");
   $ret[] = update_sql("DELETE FROM {cache_block} WHERE cid LIKE 'notifications_ui:%'");
   return $ret;
-}
-
-/**
- * Change some variables for uniform notifications_ui_[object]_options
- */
-function notifications_ui_update_6002() {
-  if ($value = variable_get('notifications_ui_user', 0)) {
-    variable_set('notifications_ui_user_options', $value);
-  }
-  if ($value = variable_get('notifications_ui_node', 0)) {
-    variable_set('notifications_ui_node_options', $value);
-  }
-  variable_del('notifications_ui_user');
-  variable_del('notifications_ui_node');
-  return array();
 }

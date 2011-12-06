@@ -1,5 +1,5 @@
 <?php
-// $Id: notifications_content.pages.inc,v 1.1.2.3.2.3.2.7 2010/07/22 11:57:49 jareyero Exp $
+// $Id: notifications_content.pages.inc,v 1.1.2.3.2.3 2010/03/12 12:51:06 jareyero Exp $
 /**
  * @file
  * Subscriptions to content events
@@ -37,181 +37,6 @@ function notifications_content_settings_form() {
 }
 
 /**
- * Template testing form
- */
-function notifications_content_test_template_form($form_state) {
-  global $user, $language;
-
-  module_load_include('admin.inc', 'notifications');
-  $message = !empty($form_state['values']['message']) ? $form_state['values']['message'] : NULL;
-  if ($message) {
-    $form['showmessage'] = array(
-      '#title' => t('Message'),
-      '#type' => 'item',
-      '#value' => _notifications_content_test_format_message(array('subect' => $message->subject, 'body' => $message->body)),
-    );
-    $form['showtemplate'] = array(
-      '#title' => t('Template parts'),
-      '#type' => 'item',
-      '#value' => _notifications_content_test_format_template($message->text_parts),
-    );
-  }
-  $form['type'] = array(
-    '#title' => t('Node type'),
-    '#type' => 'select',
-    '#options' => node_get_types('names'),
-    '#default_value' => isset($form_state['values']['type']) ? $form_state['values']['type'] : NULL,
-  );
-  $form['action'] = array(
-    '#title' => t('Action'),
-    '#type' => 'select',
-    '#options' => notifications_info('event actions'),
-    '#default_value' => isset($form_state['values']['action']) ? $form_state['values']['action'] : NULL,
-  );
-  $form['subscription_type'] = array(
-    '#title' => t('Subscription type'),
-    '#type' => 'select',
-    '#options' => notifications_subscription_types(NULL, 'title'),
-    '#default_value' => isset($form_state['values']['subscription_type']) ? $form_state['values']['subscription_type'] : NULL,
-    '#description' => t('Some modules may define a different template for their subscription types.'),
-  );
-  $form['send_method'] = array(
-    '#title' => t('Send method'),
-    '#type' => 'select',
-    '#options' => notifications_send_methods($user),
-  );
-  $form['language'] = array(
-    '#title' => t('Language'),
-    '#type' => 'select',
-    '#options' => messaging_template_language_list(),
-    '#default_value' => isset($form_state['values']['language']) ? $form_state['values']['language'] : $language->language,
-  );
-  $form['node'] = array(
-    '#title' => t('Select node'),
-    '#type' => 'textfield',
-    '#default_value' => isset($form_state['values']['node']) ? $form_state['values']['node'] : NULL,
-    '#description' => t("Enter a node id. If empty, a dummy node will be generated with title 'Test title' and body 'Test body line' (x 5 lines)"),
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Try'),
-    '#submit' => array('notifications_content_test_template_submit'),
-    '#description' => t('This test will generate fake events so only advised for development sites.'),
-  );
-  return $form;
-}
-
-/**
- * Process template test
- */
-function notifications_content_test_template_submit(&$form, &$form_state) { 
-  global $user;
-
-  // Load node or build fake node
-  if ($nid = (int)$form_state['values']['node']) {
-    if (($node = node_load($nid)) && node_access('view', $node)) {
-      drupal_set_message(t('Loaded node type @type', array('@type' => $node->type)));
-    }
-  }
-  if (empty($node)) {
-    $type = $form_state['values']['type'];
-    $node = _notifications_content_test_generate_content($type);
-    $node->nid = 1;
-    $node->uid = $user->uid;
-    $node->type = $type;
-  }
-  // Build fake event for node/action
-  $action = $form_state['values']['action'];
-  $objects['node'] = $node;
-  // Add comment if needed
-  if ($action == 'comment') {
-    $comment = _notifications_content_test_generate_content('comment');
-    $comment->cid = 1;
-    $comment->uid = $user->uid;
-    $comment->nid = $node->nid;
-    $objects['comment'] = $comment;
-  }
-  $event = Notifications_Event::create(
-    array(
-     'eid' => 1,
-     'module' => 'node',
-     'type' => 'node',
-     'action' => $action,
-    ),
-    $objects
-  );
-  if (!$event->queue) {
-    drupal_set_message(t('That event type is not enabled though we try building a message for it.'), 'warning');
-  }
-  // Get a subscription template, that may determine the module
-  $subscription = notifications_build_subscription($form_state['values']['subscription_type']);
-
-  // Build the message and store it
-  $send_method = $form_state['values']['send_method'];
-  if ($destination = messaging_account_build_destination($user, $send_method)) {
-    $template = new Notifications_Message();
-    $template->method = $send_method;
-    $template->set_destination($destination);
-    $template->language = $form_state['values']['language'];
-    $message = Notifications_Message::build_simple_message($template, $event, array(), $subscription->module);
-    // Store message and rebuild. The message will come with template information (text_parts);
-    $form_state['values']['message'] = $message;
-    $form_state['rebuild'] = TRUE;  
-  }
-  else {
-    drupal_set_message(t('Cannot build destination.'), 'warning');
-  }
-
-}
-
-/**
- * Generate fake node or comment
- */
-function _notifications_content_test_generate_content($type) {
-  $node = new Stdclass();
-  $title = t('Test title for @type', array('@type' => $type));
-  for ($i = 1; $i <= 5; $i++) {
-    $body[] = t('Test body line @number for @type.', array('@number' => $i, '@type' => $type)); 
-  }
-  if ($type == 'comment') {
-    $node->subject = $title;
-    $node->comment = implode("\n", $body);
-  }
-  else {
-    $node->title = $title;
-    $node->body = implode("\n", $body);
-    $node->teaser = node_teaser($node->body);
-  }
-  return $node;
-}
-
-/**
- * Format resulting message array as table
- */
-function _notifications_content_test_format_message($message) {
-  $rows = array();
-  foreach ($message as $key => $value) {
-    $rows[] = array($key, is_array($value) ?  _notifications_content_test_format_message($value) : '<pre>' . check_plain($value) . '</pre>');
-  }
-  return theme('table', array(), $rows);
-}
-
-/**
- * Format template information as table
- */
-function _notifications_content_test_format_template($parts) {
-  $rows = array();
-  $header = array('msgkey' => t('Key'), 'type' => t('Template'), 'method' => t('Method'), 'message' => t('Text'), 'language' => t('Language'), 'format' => t('Format'));
-  foreach ($parts as $key => $value) {
-    $row = array();
-    foreach (array_keys($header) as $field) {
-      $row[] = isset($value->$field) ? check_plain($value->$field) : '';
-    }
-    $rows[] = $row;
-  }
-  return theme('table', $header, $rows);
-}
-/**
  * Theme content type settings
  */
 function theme_notifications_content_type_settings(&$elements) {
@@ -233,3 +58,182 @@ function theme_notifications_content_type_settings(&$elements) {
   return $output;
 }
 
+/**
+ * Subscriptions page callback: List thread subscriptions
+ */
+function notifications_content_page_thread($account = NULL) {
+  global $user;
+  if (is_null($account)) {
+    $account = $user;
+  }
+  // query string for node subscriptions
+  $query = "SELECT s.*, f.value AS nid, n.type AS node_type, n.title FROM {notifications} s 
+    INNER JOIN {notifications_fields} f ON s.sid = f.sid LEFT JOIN {node} n ON f.intval = n.nid
+    WHERE s.uid = %d AND s.type = 'thread' AND s.event_type = 'node' AND s.conditions = 1 AND f.field = 'nid'
+    ORDER BY node_type, n.title";
+  $results = pager_query($query, NOTIFICATIONS_CONTENT_PAGER, 0, NULL, $account->uid);
+
+  $subscriptions = $list = array();
+  $content_types = notifications_content_types('name');
+  while ($sub = db_fetch_object($results)) {
+    $subscriptions[$sub->nid] = $sub;
+    $list[$sub->nid] = '['. $content_types[$sub->node_type] .'] '. l($sub->title, 'node/'. $sub->nid);
+  }
+
+  if (!$subscriptions) {
+    $output = t('You are not currently subscribed to any active threads');
+  }
+  else {
+    $output = t('You are currently subscribed to the following threads:');
+    $defaults = array('type' => 'thread', 'event_type' => 'node');
+    $options = array('title' => t('Title'));
+    $output .= drupal_get_form('notifications_user_form', $account, 'thread', $subscriptions, $list, $defaults, $options);
+    $output .= theme('pager', NULL, NOTIFICATIONS_CONTENT_PAGER);
+  }
+  return $output;
+}
+
+/**
+ * User subscriptions to content types
+ */
+function notifications_content_page_nodetype($account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+  // List of all subscribed node types
+  $subscriptions = notifications_get_subscriptions(array('type' => 'nodetype', 'uid' => $account->uid), array('type' => NULL), TRUE, 'value');
+  
+  $output = '';
+  $types = notifications_content_types('name');
+  if (!$types) {
+    $output .= t('There are no active content types.');    
+  }
+  else {
+    $defaults = array('type' => 'nodetype', 'event_type' => 'node');
+    $options = array('title' => t('Type'));
+    $output .= drupal_get_form('notifications_user_form', $account, 'nodetype', $subscriptions, $types, $defaults, $options);
+  
+  }
+  return $output;
+}
+
+/**
+ * User subscriptions to content types
+ */
+function notifications_content_page_author($account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+  // List of all author subscriptions, and build author list with the same query
+  $subscriptions = $list = array();
+  $sql = "SELECT n.*, f.intval, u.name FROM {notifications} n INNER JOIN {notifications_fields} f ON f.sid = n.sid INNER JOIN {users} u ON u.uid = f.intval ";
+  $sql .= " WHERE n.uid = %d AND n.type = 'author'";
+  $result = pager_query($sql, NOTIFICATIONS_CONTENT_PAGER, 0, NULL, $account->uid);
+  while ($subs = db_fetch_object($result)) {
+    $author = (object)array('uid' => $subs->intval, 'name' => $subs->name);
+    $list[$author->uid] = theme('username', $author);
+    $subs->fields['author'] = $subs->intval;
+    $subscriptions[$subs->sid] = $subs;
+  }
+ 
+  if (!$subscriptions) {
+    $output = t('There are no active author subscriptions.');    
+  }
+  else {
+    $defaults = array('type' => 'author', 'event_type' => 'node');
+    //$output = drupal_get_form('notifications_content_form', $account, $subscriptions, $list, 'author', t('Author'), $defaults);
+    $options = array('title' => t('Author'));
+    $output = drupal_get_form('notifications_user_form', $account, 'author', $subscriptions, $list, $defaults, $options);
+    $output .= theme('pager', NULL, NOTIFICATIONS_CONTENT_PAGER);
+  }
+  return $output;
+}
+
+/**
+ * Generic subscriptions content form
+ */
+function notifications_content_form($account, $subscriptions, $list, $field, $field_title, $defaults = array()) {
+  // Complete defaults
+  $defaults += array(
+    'sid' => 0, 
+    'send_interval' => notifications_user_setting('send_interval', $account), 
+    'send_method' => notifications_user_setting('send_method', $account),
+    'event_type' => 'node',
+  );
+  $form['defaults'] = array('#type' => 'value', '#value' => $defaults);  
+  $form['account'] = array('#type' => 'value', '#value' => $account);
+  $form['current'] = array('#type' => 'value', '#value' => $subscriptions);
+  $form['subscription_fields'] = array('#type' => 'value', '#value' => array());
+  $form['subscriptions'] = array(
+    '#tree' => TRUE,
+    '#theme' => 'notifications_form_table',
+    '#header' => array('', $field_title, t('Send interval'), t('Send method'))
+  );  
+  foreach ($list as $key => $title) {
+    $rowdefaults = isset($subscriptions[$key]) ? (array)($subscriptions[$key]) : $defaults;
+    $rowdefaults += $rowdefaults;
+    $form['subscriptions']['checkbox'][$key] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $rowdefaults['sid'],
+    );
+    $form['subscriptions']['title'][$key] = array(
+      '#value' => $title,
+    );
+    $form['subscriptions']['send_interval'][$key] = array(
+      '#type' => 'select',
+      '#options' => notifications_send_intervals(),
+      '#default_value' => $rowdefaults['send_interval'],
+    );
+    $form['subscriptions']['send_method'][$key] = array(
+      '#type' => 'select',
+      '#options' => _notifications_send_methods(),
+      '#default_value' => $rowdefaults['send_method'],
+    );
+    // Pass on the fields for processing
+    $form['subscription_fields']['#value'][$key] = array($field => $key);
+  
+  }
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+
+  return $form; 
+}
+
+/**
+ * Process generic form submission
+ */
+function notifications_content_form_submit($form, &$form_state) {
+  $form_values = $form_state['values'];
+  $account = $form_values['account'];
+  $current = $form_values['current'];
+  $defaults = $form_values['defaults'];
+  $defaults += array('type' => 'node', 'uid' => $account->uid);
+  $fields = $form_values['subscription_fields'];
+  $values = $form_values['subscriptions'];
+  $check = 'checkbox';
+
+  foreach ($values[$check] as $index => $value) {
+    $subscription = NULL;
+    if ($value) {
+      // Checked, save only if new or changed
+      if (!isset($current[$index])) {
+        $subscription = $defaults;
+      }
+      elseif ($current[$index]->send_interval != $values['send_interval'][$index] || $current[$index]->send_method != $values['send_method'][$index]) {
+        $subscription = (array)($current[$index]);        
+      }
+      // Complete and save
+      if ($subscription) {
+        $subscription['send_interval'] = $values['send_interval'][$index];
+        $subscription['send_method'] = $values['send_method'][$index];
+        $subscription['fields'] = $fields[$index];
+        notifications_save_subscription($subscription);
+      }
+    }
+    elseif (isset($current[$index])) {
+      notifications_delete_subscription($current[$index]->sid);
+    }
+  }
+  drupal_set_message(t('Your subscriptions have been updated.'));
+}

@@ -1,0 +1,12 @@
+<?php
+
+/**
+ *  @file
+ *  Embedded Audio Field provider file for National Public Radio.
+ */
+
+function media_npr_emfield_providers($module, $provider = NULL) {
+  if ($module == 'emaudio') {
+    return drupal_system_listing("$provider\.inc$", drupal_get_path('module', 'media_npr') ."/providers", 'name', 0);
+  }
+}

@@ -1,5 +1,5 @@
 <?php
-// $Id: notifications_content.install,v 1.1.2.4.2.2.4.3 2010/04/09 01:24:43 jareyero Exp $
+// $Id: notifications_content.install,v 1.1.2.4.2.2 2009/04/30 11:22:37 jareyero Exp $
 
 /**
  * Implementation of hook_install().
@@ -40,22 +40,5 @@ function notifications_content_update_6000() {
 function notifications_content_update_6001() {
   // All options will be messed up so we better do manual review
   drupal_set_message(t('Please, check all your Notifications content settings and note the new options.'));
-  return array();
-}
-
-/**
- * Update enabled options (again)
- */
-function notifications_content_update_6002() {
-  if ($events = variable_get('notifications_events', array())) {
-    $enabled = array();
-    foreach ($events as $type => $type_info) {
-      foreach ($type_info as $action => $status) {
-        $enabled[$type . '-' . $action] = 1;
-      }
-    }
-    variable_set('notifications_event_enabled', $enabled);
-    variable_del('notifications_events');
-  }
   return array();
 }

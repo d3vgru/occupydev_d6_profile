@@ -1,73 +1,15 @@
+// $Id: CHANGELOG.txt,v 1.1.2.8.2.29.2.21 2011/02/16 23:30:37 jareyero Exp $
 
-6.x-4.x-beta7 to 6.x-4.x-beta8
-------------------------------
-- #872944, by roderik, Format filter "No Filter" doesn't work (actually applies system default filter)
-- #872978, by roderik, PHPMailer: false watchdog error when debugging turned on
-- #912322, by roderik, messaging_template_build() missing return statement
-- #461226, by w3wfr, Messaging XMPP not sending.
-- #1008898, by thePanz, Install issue (database field error).
-- Tightened administration permissions, now needs 'administer site configuration'
-
-6.x-4.x-beta6 to 6.x-4.x-beta7
-------------------------------
-- Added API function: messaging_template_build() to build message from template
-- Added bulk sending to multiple users: messaging_message_bulk_send(), to be optimized
-- Some improvements to support language for tokens
-- Set name for anonymous user, prevent PHP Notice on latest token module
-- Fixed Message::get_destination(), set_destination() to always set a value, by davidmprice, #832098
-- Moved all mail related functions into messaging_mail module, #807964
-- PHPMailer, SMTP Port and Security configuration in UI, by bryan_savage and joshk, #813550
-
-6.x-4.x-beta5 to 6.x-4.x-beta6
-------------------------------
-- Added: More flexible return path and message headers for mail, #542022, #260595
-- Improved admin settings for send methods, added 'enable/disable' checkbox
-- Added testing feature from messaging_debug.
-- Changing fallback for object language, check user language first
-- Fixed wrong function name (is_empty) by Scott Reynolds, #805862
-- Fixed wrong name for alter hook in messaging_info()
-- Updated privatemsg API to avoid permission issues, #726874
-
-6.x-4.x-beta4 to 6.x-4.x-beta5
-------------------------------
-- Some updates for it not break with Twitter 6.x-3.x
-- Moved queue and log options to Messaging Tools (Notifications Tools), #799770
-- Added new method type (NOQUEUE) for disabling queueing for some methods
-- Cleaned up and documented Messaging_Message properties
-- Improved persistence for messages, proper handling of serializable properties
-- Messaging_Store now uses schema information to properly handle serialization
-- Improved multisend, log all destinations that failed
-- New Messaging_User_Object so it can be inherited independently of 'persistent objects'
-
-6.x-4.x-beta3 to 6.x-4.x-beta4
--------------------------------
-- Added views support for messaging_simple, by joshuajabbour, #791694
-- Added some extenstions to Message class: get_method_params()
-- Simplified and improved message sending workflow.
-- Fixed multiple upgrade issues and bugs: #787304, #786844, #790984, #792850, #790226, #792756
-
-6.x-4.x-beta1 to 6.x-4.x-beta3
-------------------------------
-- Reworked admin settings, added 'discard' option, see #775650
-- Added 'queue' and 'log' options for each sending method.
-- Added hook_messaging('address types') for send methods to share address information
-- Improved Destinations, dropping method field, a destination is now an address.
-- Allow specific Input formats for template parts.
-- Reworked message filtering, now it uses module's own filters.
-- Added format and data field (not used yet) for message templates.
-
-6.x-2.2 to 6.x-4.x-beta1
+6.x-2.3 to 6.x-2.4
 ------------------------
-- Extended templates with language and translations
-- Major OOP rework: Message, Destination, Send_Method
-- Reworked messaging_simple, now it uses its own table
-- Support for Anonymous destinations / subscriptions.
-- Reorganized modules: new template module, moved debug module to notifications_extra, etc..
-- Implemented 7.x like API for static variables,
-- API and storage improvements for upcoming multilingual support.
-- Added Messaging_Destination class, new dependency on autoload module
-- Added messaging_destination table and basic API, see #743008
-- Added messaging_static(), Drupal 7 API backport, see #742884
+- Added proper filtering for messaging method names.
+
+6.x-2.2 to 6.x-2.3
+------------------------
+- Added PHPMailer support for secure sending port (Gmail support), by foxtrotcharlie, #549382
+- Check message['headers'] is actually an array, by Scott Reynolds, #653856
+- Removed obsoleted messaging_get_log() function, #717852
+- Fixing issue: Unsupported operand types (method disabled), #451638
 - Improved logging system so it needs to be enabled, see #733176
 - Updated translation function to work with latest i18nstrings. New messaging_translate()
 

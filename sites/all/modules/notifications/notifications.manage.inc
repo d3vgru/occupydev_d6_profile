@@ -1,10 +1,26 @@
 <?php
-// $Id: notifications.manage.inc,v 1.1.2.3.2.7.2.12 2010/07/21 10:55:30 jareyero Exp $
+// $Id: notifications.manage.inc,v 1.1.2.3.2.7 2010/03/12 12:51:06 jareyero Exp $
 
 /**
  * @file
  *   Common functions for bulk management of subscriptions
  */
+
+/**
+ * Menu callback: subscriptions administration.
+ */
+function notifications_manage_admin_subscriptions($form_state) {
+  module_load_include('inc', 'notifications', 'notifications.admin');
+  if (isset($form_state['values']['operation']) && $form_state['values']['operation'] == 'delete') {
+    return notifications_multiple_delete_confirm($form_state, array_filter($form_state['values']['subscriptions']));
+  }
+  $form = notifications_subscriptions_filter_form(TRUE);
+
+  $form['#theme'] = 'notifications_subscriptions_filter_form';
+  $form['admin']  = notifications_manage_subscriptions_form();
+
+  return $form;
+}
 
 /**
  * Menu callback: user subscriptions management
@@ -46,72 +62,14 @@ function notifications_manage_subscriptions_access($sids) {
 
 /**
  * Administer user subscriptions
- * 
- * @param $account
- *   User account or destination
  */
 function notifications_manage_subscriptions_form($account = NULL, $full = TRUE) {
   $filter = notifications_subscriptions_build_filter_query($account);
   if ($account) {
-    $result = pager_query('SELECT n.*, d.address FROM {notifications} n INNER JOIN {messaging_destination} d ON n.mdid = d.mdid '. $filter['join'] . $filter['where'] .' ORDER BY n.sid DESC', 50, 0, NULL, $filter['args']);
+    $result = pager_query('SELECT n.* FROM {notifications} n '. $filter['join'] . $filter['where'] .' ORDER BY n.sid DESC', 50, 0, NULL, $filter['args']);
   } else {
-    $result = pager_query('SELECT n.*, d.address, u.name AS user_name FROM {notifications} n INNER JOIN {messaging_destination} d ON n.mdid = d.mdid '. $filter['join'] .' INNER JOIN {users} u ON n.uid = u.uid '. $filter['where'] .' ORDER BY n.sid DESC', 50, 0, NULL, $filter['args']);
+    $result = pager_query('SELECT n.*, u.name FROM {notifications} n '. $filter['join'] .' INNER JOIN {users} u ON n.uid = u.uid '. $filter['where'] .' ORDER BY n.sid DESC', 50, 0, NULL, $filter['args']);
   }
-  $form = notifications_manage_subscriptions_form_options($account);
-  $form_destination = drupal_get_destination();
-  $subscriptions = array();
-  $status = Notifications_Subscription::status_list();
-  $send_methods = messaging_method_info(NULL, 'name');
-  $send_intervals = notifications_send_intervals();
-  while ($object = db_fetch_object($result)) {
-    $sub = notifications_load_subscription($object);
-    $subscriptions[$sub->sid] = '';
-    // Naming for this specific subscription, formatted strings    
-    $form['type'][$sub->sid] = array('#value' => $sub->get_type('title'));
-    // If full loading, load full subscription and add description
-    if ($full) {
-      $form['description'][$sub->sid] = array('#value' => $sub->get_name());
-    }
-    // If not account, this is an admin form for multiple users, print full account and address
-    if (!$account) {
-      if ($sub->uid) {
-        $username = $sub->get_user_name();
-      }
-      else {
-        // Anonymous subscription, print destination instead
-        $dest = $sub->get_destination();
-        $username = $dest->address_name() . ' ' . l($dest->format_address(FALSE), 'notifications/destination/' . $sub->mdid . '/manage') ;
-      }
-      $form['username'][$sub->sid] = array('#value' => $username);
-    }
-    $form['send_method'][$sub->sid] = array('#value' => !empty($send_methods[$sub->send_method]) ? $send_methods[$sub->send_method] : $sub->send_method);
-    $form['send_interval'][$sub->sid] = array('#value' => !empty($send_intervals[$sub->send_interval]) ? $send_intervals[$sub->send_interval] : $sub->send_interval);  
-    $form['status'][$sub->sid] =  array('#value' => $status[$sub->status]);
-    // These links will be different depending on whether we are under admin or user account
-    if ($account) {
-      $operations = array(
-        l(t('edit'), 'user/'. $account->uid .'/notifications/subscriptions/edit/' . $sub->sid, array('query' => $form_destination)),
-        l(t('drop'), 'user/'. $account->uid .'/notifications/subscriptions/delete/' . $sub->sid, array('query' => $form_destination)),
-      );
-    }
-    else {
-      $operations = array(
-        l(t('edit'), 'notifications/subscription/' . $sub->sid, array('query' => $form_destination)),
-        l(t('drop'), 'notifications/unsubscribe/sid/' . $sub->sid, array('query' => $form_destination)),
-      );
-    }
-    $form['operations'][$sub->sid] = array('#value' => implode(', ', $operations));
-  }
-  $form['subscriptions'] = array('#type' => 'checkboxes', '#options' => $subscriptions);
-  $form['pager'] = array('#value' => theme('pager', NULL, 50, 0));
-  $form['#theme'] = 'notifications_manage_subscriptions';
-  return $form;
-}
-
-/**
- * Form options
- */
-function notifications_manage_subscriptions_form_options($account) {
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Update options'),
@@ -137,7 +95,47 @@ function notifications_manage_subscriptions_form_options($account) {
     '#validate' => array('notifications_manage_subscriptions_form_validate'),
     '#submit' => array('notifications_manage_subscriptions_form_submit'),
   );
-  return $form;  
+
+  $destination = drupal_get_destination();
+  $subscriptions = array();
+  $status = _notifications_subscription_status();
+  $send_methods = messaging_method_info(NULL, 'name');
+  $send_intervals = notifications_send_intervals();
+  while ($sub = db_fetch_object($result)) {
+    $subscriptions[$sub->sid] = '';
+    // Naming for this specific subscription, formatted strings    
+    $form['type'][$sub->sid] = array('#value' => notifications_subscription_types($sub->type, 'title'));
+    // If full loading, load full subscription and add description
+    if ($full) {
+      $sub = notifications_load_subscription($sub);
+      $format = notifications_format_subscription($sub, 'array');
+      $form['description'][$sub->sid] = array('#value' => $format['name']);
+    }    
+    if (!$account) {
+      $form['username'][$sub->sid] = array('#value' => theme('username', $sub));
+    }
+    $form['send_method'][$sub->sid] = array('#value' => !empty($send_methods[$sub->send_method]) ? $send_methods[$sub->send_method] : $sub->send_method);
+    $form['send_interval'][$sub->sid] = array('#value' => !empty($send_intervals[$sub->send_interval]) ? $send_intervals[$sub->send_interval] : $sub->send_interval);  
+    $form['status'][$sub->sid] =  array('#value' => $status[$sub->status]);
+    // These links will be different depending on whether we are under admin or user account
+    if ($account) {
+      $operations = array(
+        l(t('edit'), 'user/'. $account->uid .'/notifications/subscriptions/edit/' . $sub->sid, array('query' => $destination)),
+        l(t('drop'), 'user/'. $account->uid .'/notifications/subscriptions/delete/' . $sub->sid, array('query' => $destination)),
+      );
+    }
+    else {
+      $operations = array(
+        l(t('edit'), 'notifications/subscription/' . $sub->sid, array('query' => $destination)),
+        l(t('drop'), 'notifications/unsubscribe/sid/' . $sub->sid, array('query' => $destination)),
+      );
+    }
+    $form['operations'][$sub->sid] = array('#value' => implode(', ', $operations));
+  }
+  $form['subscriptions'] = array('#type' => 'checkboxes', '#options' => $subscriptions);
+  $form['pager'] = array('#value' => theme('pager', NULL, 50, 0));
+  $form['#theme'] = 'notifications_manage_subscriptions';
+  return $form;
 }
 
 /**
@@ -179,48 +177,6 @@ function notifications_manage_subscriptions_form_submit($form, &$form_state) {
     // We need to rebuild the form to go to a second step.  For example, to
     // show the confirmation form for the deletion of subscriptions.
     $form_state['rebuild'] = TRUE;
-  }
-}
-
-/**
- * Manage destination form. Edit subscriptions for a destination
- */
-function notifications_manage_destination_form($form_state, $destination) {
-  module_load_include('inc', 'notifications', 'notifications.pages');
-  notifications_include('destination.inc');
-  if (isset($form_state['values']['operation']) && $form_state['values']['operation'] == 'delete') {
-    $form = notifications_multiple_delete_confirm($form_state, array_filter($form_state['values']['subscriptions']));
-    return $form;
-  }
-  //$form = notifications_destination_view_subform($destination);
-  $form['description'] = notifications_destination_subform($destination);
-  $form['admin'] = notifications_destination_manage_subform($destination);
-  $form['admin'] += notifications_manage_subscriptions_form_options($destination);
-  $form['extra'] = notifications_manage_destination_extra($destination); 
-  return $form;
-}
-
-/**
- * Manage destination extra options for administrators
- */
-function notifications_manage_destination_extra($destination) {
-  if (user_access('administer notifications') && function_exists('notifications_anonymous_manage_links')) {
-    foreach (_notifications_anonymous_manage_links('destination', $destination) as $link) {
-      $url = url($link['href'], $link['options']);
-      $rows[] = array(
-        $link['title'],
-        l($url, $url),
-      );
-    }
-    $form['links'] = array(
-      '#type' => 'item',
-      '#title' => t('Anonymous links for this destination'),
-      '#value' => theme('table', array(), $rows),
-    );
-    return $form;
-  }
-  else {
-    return array();
   }
 }
 /**
@@ -269,7 +225,7 @@ function notifications_subscriptions_filters($admin = FALSE) {
 
   $filters['status'] = array(
     'title' => t('status'),
-    'options' => Notifications_Subscription::status_list(),
+    'options' => _notifications_subscription_status(),
   );
   $filters['type'] = array(
     'title' => t('type'),
@@ -305,12 +261,12 @@ function notifications_subscriptions_operations($account = NULL) {
     'activate' => array(
       'label' => t('Activate'),
       'callback' => 'notifications_subscriptions_mass_update',
-      'callback arguments' => array('updates' => array('status' => Notifications_Subscription::STATUS_ACTIVE)),
+      'callback arguments' => array('updates' => array('status' => NOTIFICATIONS_SUBSCRIPTION_ACTIVE)),
     ),
     'deactivate' => array(
       'label' => t('Deactivate'),
       'callback' => 'notifications_subscriptions_mass_update',
-      'callback arguments' => array('updates' => array('status' => Notifications_Subscription::STATUS_INACTIVE)),
+      'callback arguments' => array('updates' => array('status' => NOTIFICATIONS_SUBSCRIPTION_INACTIVE)),
     ),
     'delete' => array(
       'label' => t('Delete'),
@@ -322,20 +278,18 @@ function notifications_subscriptions_operations($account = NULL) {
     $operations['block'] = array(
       'label' => t('Block'),
       'callback' => 'notifications_subscriptions_mass_update',
-      'callback arguments' => array('updates' => array('status' => Notifications_Subscription::STATUS_BLOCKED)),
+      'callback arguments' => array('updates' => array('status' => NOTIFICATIONS_SUBSCRIPTION_BLOCKED)),
     );
   }
-  // Sending methods, not for destination
-  if (!empty($account->mdid)) {
-    $parent = t('Change send method to');
-    foreach (_notifications_send_methods($account) as $key => $name) {
-      $operations['send_method-' . $key] = array(
-        'label' => $name,
-        'parent' => $parent,
-        'callback' => 'notifications_subscriptions_mass_update',
-        'callback arguments' => array('updates' => array('send_method' => $key)),
-      );
-    }
+  // Sending methods
+  $parent = t('Change send method to');
+  foreach (_notifications_send_methods($account) as $key => $name) {
+    $operations['send_method-' . $key] = array(
+      'label' => $name,
+      'parent' => $parent,
+      'callback' => 'notifications_subscriptions_mass_update',
+      'callback arguments' => array('updates' => array('send_method' => $key)),
+    );
   }
   $parent = t('Change send interval to');
   foreach (notifications_send_intervals() as $key => $name) {
@@ -391,12 +345,13 @@ function notifications_multiple_delete_confirm(&$form_state, $items, $destinatio
     // array_filter returns only elements with TRUE values
     foreach ($items as $id => $value) {
       // Load the subscription to display a friendly name
-      $subscription = notifications_load_subscription($id);
+      $subscription = notifications_load_subscription($id);      
+      $title = notifications_format_subscription($subscription, 'long');
       $form['items'][$id] = array(
         '#type' => 'hidden',
         '#value' => $id,
         '#prefix' => '<li>',
-        '#suffix' => $subscription->format_long()."</li>\n",
+        '#suffix' => $title ."</li>\n",
       );
     }    
     $form['operation'] = array('#type' => 'hidden', '#value' => 'delete');
@@ -428,7 +383,9 @@ function notifications_multiple_delete_confirm_validate($form, &$form_state) {
  */
 function notifications_multiple_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
-    notifications_subscription_delete(array_keys($form_state['values']['items']));
+    foreach ($form_state['values']['items'] as $id => $value) {
+      notifications_delete_subscription($id);
+    }
     drupal_set_message(t('The subscriptions have been deleted.'));
   }
   return;
@@ -485,8 +442,10 @@ function notifications_subscriptions_filter_form_submit($form, &$form_state) {
     case t('Refine'):
       if (isset($form_state['values']['filter'])) {
         $filter = $form_state['values']['filter'];
+
         // Flatten the options array to accommodate hierarchical/nested options.
         $flat_options = form_options_flatten($filters[$filter]['options']);
+
         if (isset($flat_options[$form_state['values'][$filter]])) {
           $_SESSION['subscriptions_overview_filter'][] = array($filter, $form_state['values'][$filter]);
         }
@@ -519,12 +478,8 @@ function theme_notifications_manage_subscriptions($form) {
   if (!empty($form['username'])) {
     $header[] = t('User');
   }
-  if (!empty($form['send_method'])) {
-    $header[] = t('Send method');
-  }
-  if (!empty($form['send_interval'])) {
-    $header[] = t('Send interval');
-  }
+  $header[] = t('Send method');
+  $header[] = t('Send interval');
   $header[] = t('Status');
   $header[] = t('Operations');
   $output = '';
@@ -535,18 +490,14 @@ function theme_notifications_manage_subscriptions($form) {
       $row = array();
       $row[] = drupal_render($form['subscriptions'][$key]);
       $row[] = drupal_render($form['type'][$key]);
-      if (isset($form['description'])) {
+      if (!empty($form['description'])) {
         $row[] = drupal_render($form['description'][$key]);
       }
-      if (isset($form['username'])) {
+      if (!empty($form['username'])) {
         $row[] = drupal_render($form['username'][$key]);
       }
-      if (isset($form['send_method'])) {
-        $row[] = drupal_render($form['send_method'][$key]);
-      }
-      if (isset($form['send_interval'])) {
-        $row[] = drupal_render($form['send_interval'][$key]);
-      }   
+      $row[] = drupal_render($form['send_method'][$key]);
+      $row[] = drupal_render($form['send_interval'][$key]);       
       $row[] = drupal_render($form['status'][$key]);
       $row[] = drupal_render($form['operations'][$key]);
       $rows[] = $row;

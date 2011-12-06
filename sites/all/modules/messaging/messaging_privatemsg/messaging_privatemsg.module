@@ -17,13 +17,11 @@ function messaging_privatemsg_messaging($op) {
         'name' => t('Private message'),
         'group' => 'web',
         'type' => MESSAGING_TYPE_SEND,
-        'address_type' => 'user', // Which kind of address this method uses
         'access' => 'read privatemsg',
         'glue' => "\n",
         'description' => t('Send messages through Privatemsg'),
         'send callback' => 'messaging_privatemsg_send_msg', // Sending callback
-        'filter' => 'messaging_filter', // Default filter for this format
-        'anonymous' => FALSE, // This method is not valid for anonymous users
+        'destination' => 'uid',
       );
       return $info;  
   }
@@ -33,34 +31,21 @@ function messaging_privatemsg_messaging($op) {
  * Send mail message to user accounts
  * 
  * Privatemsg API documentation on http://drupal.org/node/369399
- * As we cannot use privatemsg_new_thread(), we bypass validation
- * and send the message with the internal function _privatemsg_send()
- * 
- * See http://drupal.org/node/726874
  * 
  * @param $destination
  *   User account or user id
  */
 function messaging_privatemsg_send_msg($destination, $message) {
   // Prepare the privatemsg parameters
-  $recipient = messaging_user_object($destination);
-  $author = $message->get_sender();
-
-  $privatemsg = array();
-  $privatemsg['subject'] = $message->get_subject();
-  $privatemsg['body'] = $message->get_body();
-  $privatemsg['recipients'][$recipient->uid] = $recipient;
-
-  // Apply defaults - this will not overwrite existing keys.
-  $privatemsg += array(
-    'author' => $author,
-    'timestamp' => time(),
-    'format' => filter_resolve_format(FILTER_FORMAT_DEFAULT),
-  );
-  
-  // Send
-  $privatemsg = _privatemsg_send($privatemsg);
-  return !empty($privatemsg['mid']);
+  $recipients = is_object($destination) ? array($destination) : array(messaging_load_user($destination));
+  if (!empty($message->sender_account)) {
+    $sender = $message->sender_account;
+  } elseif (!empty($message->sender)) {
+    $sender = messaging_load_user($message->sender);
+  } 
+  // this could be broken by minor changes to privatemsg_new_thread, which has an API different from its implementation at present
+  $ret = privatemsg_new_thread($recipients, $message->subject, $message->body, array('author' => $sender));
+  return $ret['success'];
 }
 
 /**

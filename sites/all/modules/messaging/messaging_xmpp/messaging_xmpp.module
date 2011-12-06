@@ -1,4 +1,5 @@
 <?php
+// $Id: messaging_xmpp.module,v 1.1.2.1 2009/04/30 10:42:35 jareyero Exp $
 /**
  * @file
  * XMPP Messsaging. Messaging method plug-in
@@ -84,18 +85,10 @@ function messaging_xmpp_messaging($op) {
         'type' => MESSAGING_TYPE_PUSH,
         'glue' => "\n",
         'description' => t('Send XMPP using XMPP Framework.'),
-        'address_type' => 'xmpp',
         'send callback' => 'messaging_xmpp_send_msg',
+        'destination callback' => 'messaging_xmpp_user_destination',
         'render callback' => 'messaging_xmpp_render',
-        'user callback' => 'messaging_xmpp_user_check',
-        'anonymous' => TRUE, // Allow anonymous destinations
-      );
-      return $info;
-    case 'address types':
-      $info['xmpp'] = array(
-        'name' => t('XMPP account'), // Name of the address for this method
-        'user2address callback' => 'messaging_xmpp_user_destination', // Mapping user account to address
-        'validate callback' => 'valid_email_address', // We can use email validation for these ones 
+        'user callback' => 'messaging_xmpp_user_check'
       );
       return $info;
   }
@@ -128,12 +121,21 @@ function messaging_xmpp_user($type, $edit, &$account, $category = NULL) {
  * 
  * @see messaging_message_send_user()
  * 
- * @param $message
- *   Message object. It can be redirected to other sending method.
+ * @param $params
+ *   Array of parameters that can be overridden
+ *   - method
+ *   - queue
+ *   - destination
+ *   - log
+ *   and some others that cannot
+ *   - account
+ *   - message
+ * 
+ * @return array()
+ *   $params with overridden values
  */
-function messaging_xmpp_user_check($message) {
-  $account = $message->get_user();
-  $message->process = FALSE;
+function messaging_xmpp_user_check($params) {
+  $account = $params['account'];
   // If the option is 0 = Send anyway, we do nothing else
   if (!empty($account->uid) && ($what = messaging_user_setting('xmpp_offline', $account, 0))) {
     // Now we need to know whether the user is online, otherwise just return normal values
@@ -141,23 +143,21 @@ function messaging_xmpp_user_check($message) {
       // Now we need to decide 
       if ($what == MESSAGING_XMPP_OFFLINE_QUEUE) { // Queue for when the user is online
         messaging_log('Queueing XMPP message for offline user', array('uid' => $account->uid));
-        $message->queue = 1;
+        $params['queue'] = 1;
       }
       elseif ($what == MESSAGING_XMPP_OFFLINE_DISCARD) {
         messaging_log('Discarding XMPP message for offline user', array('uid' => $account->uid));
         // These two should cause the message to be discarded without logging
-        $message->discard = TRUE;
-        $message->log = FALSE;
+        $params['destination'] = FALSE;
+        $params['log'] = FALSE;
       }
       elseif (messaging_method_info($what)) {
         messaging_log('Redirecting XMPP message for offline user', array('uid' => $account->uid, 'method' => $what));
-        $message->method = $what;
-        $message->destination = FALSE;
-        // Keep on processing, the other method may have sth to say about this
-        $message->process = TRUE;
+        $params['method'] = $what;
       }
     }
   }
+  return $params;
 }
 
 /**
@@ -165,8 +165,8 @@ function messaging_xmpp_user_check($message) {
  */
 function messaging_xmpp_render($message, $info) {
   // rendering the message to get any additional pieces being put on
-  $message = Messaging_Send_Method::default_render($message, $info);
-  // We apply a final filtering, stripping out all html tags
+  $message = messaging_message_render($message, $info);
+  // We apply a final filterting, stripping out all html tags
   $message->body = messaging_text_clean($message->body);
   $message->subject = messaging_text_clean($message->subject);
   return $message;

@@ -1,3 +1,4 @@
+// $Id: README.txt,v 1.1.4.2.2.1 2009/11/11 18:07:24 jareyero Exp $
 
 README.txt - Drupal Module - Messaging
 ======================================

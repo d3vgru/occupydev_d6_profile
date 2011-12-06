@@ -1,5 +1,5 @@
 <?php
-// $Id: notifications.install,v 1.4.2.5.2.6.2.2.4.9 2010/06/01 11:00:12 jareyero Exp $
+// $Id: notifications.install,v 1.4.2.5.2.6.2.2 2009/04/20 12:51:09 jareyero Exp $
 
 /**
  * Implementation of hook_schema()
@@ -16,33 +16,25 @@ function notifications_schema() {
         'description' => 'User id this subscription belongs to.',
         'type' => 'int', 'not null' => TRUE, 'disp-width' => '11'
       ),
-      'mdid'    => array(      
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,
-        'description' => 'Unique destination id.',
-      ),
       'type' => array(
         'description' => 'Subscription type, will depend on subscription modules enabled.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '',
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE
       ),
       'event_type' => array(
         'description' => 'Type of event that triggers this subscription.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '',
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE
       ),
       'conditions' => array(
         'description' => 'Number of conditions this subscription has, for query convenience.',
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'
       ),
       'send_interval' => array(
         'description' => 'Sending interval for notifications of this subscription.',
-        'type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'
-      ),
-      'language' => array(
-        'description' => 'Language',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''
+        'type' => 'int', 'not null' => FALSE, 'disp-width' => '11'
       ),
       'send_method' => array(
         'description' => 'Sending method key, see Messaging module.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '',
+        'type' => 'varchar', 'length' => '255', 'not null' => TRUE
       ),
       'cron' => array(
         'description' => '1 if this subscription will generate notifications to be processed on cron.',
@@ -58,7 +50,7 @@ function notifications_schema() {
       ),
       'destination' => array(
         'description' => 'Alternate destination field for anonymous subscriptions, may be an email',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '',
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE
       ),
     ),
     'primary key' => array('sid'),
@@ -102,19 +94,14 @@ function notifications_schema() {
       ),
       'action' => array(
         'description' => 'Event action: insert, update, etc.',
-        'type' => 'varchar', 'length' => '255', 'not null' => FALSE
-      ),
-      'typekey' => array(
-        'description' => 'Event key, will depend on type and action.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '',
-      ),
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE),
       'oid' => array(
         'description' => 'Object id of the primary object for the event. I.e. for node events it will be nid',
         'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'
       ),
       'language' => array(
-        'description' => 'Language.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''
+        'description' => 'Language, currently unused.',
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE
       ),
       'uid' => array(
         'description' => 'Id of the user causing the event.',
@@ -157,7 +144,7 @@ function notifications_schema() {
       ),
       'language' => array(
         'description' => 'Language, currently unused.',
-        'type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''
+        'type' => 'varchar', 'length' => '255', 'not null' => FALSE,
       ),
       'type' => array(
         'description' => 'The {notifications}.type of the Subscription producing this notification.',
@@ -170,10 +157,6 @@ function notifications_schema() {
       'send_method' => array(
         'description' => 'Messaging send method',
         'type' => 'varchar', 'length' => '255', 'not null' => FALSE,
-      ),
-      'send_time' => array(
-        'description' => 'Unix timestamp, when this notification is to be sent, for scheduled notifications.',
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '10',
       ),
       'sent' => array(
         'description' => 'Unix timestamp, when this notification was actually sent for rows kept as logs.',
@@ -199,10 +182,6 @@ function notifications_schema() {
         'description' => 'Optional destination for anonymous subscriptions.',
         'type' => 'varchar', 'length' => '255', 'not null' => FALSE,
       ),
-      'mdid'    => array(      
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,
-        'description' => 'Unique destination id.',
-      ),
     ),
     'primary key' => array('sqid'),
   );
@@ -210,10 +189,6 @@ function notifications_schema() {
   $schema['notifications_sent'] = array(
     'description' => 'Keeps track of when the last notification was sent for a user, method, interval.',
     'fields' => array(
-      'mdid'    => array(      
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,
-        'description' => 'Unique destination id.',
-      ),
       'uid' => array(
         'description' => 'The {user}.uid this row belongs to.',
         'type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'
@@ -222,16 +197,16 @@ function notifications_schema() {
         'description' => 'The Notifications send interval.',
         'type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '10'
       ),
+      'send_method' => array(
+        'description' => 'The Messaging sending method.',
+        'type' => 'varchar', 'length' => '50', 'not null' => TRUE
+      ),
       'sent' => array(
         'description' => 'Unix timestamp, when the last notification was sent.',
         'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '10'
       ),
-      'counter' => array(
-        'description' => 'Keeps a count of the notifications sent.',
-        'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'
-      ),
     ),
-    'primary key' => array('mdid', 'send_interval'),
+    'primary key' => array('uid', 'send_interval', 'send_method'),
   );
   return $schema;  
 }
@@ -248,7 +223,7 @@ function notifications_install() {
  */
 function notifications_uninstall() {
   drupal_uninstall_schema('notifications');
-  foreach (array('event_enabled', 'send_intervals', 'sender', 'sendself', 'send_immediate') as $name) {
+  foreach (array('events', 'send_intervals', 'sender', 'sendself', 'send_immediate') as $name) {
     variable_del("notifications_$name");
   }
 }
@@ -398,179 +373,4 @@ function notifications_update_6003() {
 function notifications_update_6004() {
   drupal_get_schema(NULL, TRUE);
   return array();
-}
-
-/**
- * Migrate to messaging_destination mdid
- * 
- * Split into multiple updates so individual batch steps are smaller
- */
-function notifications_update_6005() {
-  $ret = array();
-  // Add fields to tables, allow null till it's populated
-  $field_mdid = array('type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE);
-  db_add_field($ret, 'notifications', 'mdid', $field_mdid);
-  db_add_field($ret, 'notifications_queue', 'mdid', $field_mdid); 
-  db_add_field($ret, 'notifications_sent', 'mdid', $field_mdid);
-  db_drop_primary_key($ret, 'notifications_sent');
-  return $ret;
-}
-
-/**
- * Clean up the queue, will speed up next updates.
- */
-function notifications_update_6006() {
-  return _notifications_update_queue_clean();
-}
-
-/**
- * Create the destinations we need.
- */
-function notifications_update_6007() {
-  return _notifications_update_fix_destinations('create');
-}
-
-/**
- * Update notifications_sent table. Not needed anymore.
- */
-function notifications_update_6008() {
-  return array();
-}
-
-/**
- * Update notifications_sent table
- */
-function notifications_update_6009() {
-  $ret = array();
-  db_add_primary_key($ret, 'notifications_sent', array('mdid', 'send_interval'));  
-  return $ret; 
-}
-
-/**
- * Set type to destinations. Not needed anymore.
- */
-function notifications_update_6010() {
-  return array();
-}
-
-/**
- * Language enable everything and normalize language field
- */
-function notifications_update_6011() {
-  $ret = array();
-  $language_field = array('type' => 'varchar', 'length' => 12, 'not null' => TRUE, 'default' => '');
-  $language_default = language_default('language');
-  if (!variable_get('notifications_update_destinations', 0)) {
-    $ret = _notifications_update_queue_clean();
-  }
-  db_change_field($ret, 'notifications_queue', 'language', 'language', $language_field);
-  //db_change_field($ret, 'notifications_event', 'language', 'language', $language_field);
-  // Add language to 'notifications' and populate with user's language or default language
-  db_add_field($ret, 'notifications', 'language', $language_field);
-  $ret[] = update_sql("UPDATE {notifications} n SET language = (SELECT language FROM {users} u WHERE n.uid = u.uid AND u.language <> '')");
-  $ret[] = update_sql("UPDATE {notifications} SET language = '$language_default' WHERE language = '' OR language IS NULL");
-  return $ret; 
-}
-
-/**
- * Add event type key
- */
-function notifications_update_6012() {
-  $ret = array();
-  db_add_field($ret, 'notifications_event', 'typekey', array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''));
-  // Reset enabled events
-  return $ret;
-}
-
-/**
- * Clean up queue and events
- */
-function notifications_update_6013() {
-  return _notifications_update_queue_clean();
-}
-
-/**
- * Create the destinations we need. Not needed anymore
- */
-function notifications_update_6014() {
-  return array();
-}
-
-/**
- * Clean up messaging_destination.
- */
-function notifications_update_6015() { 
-  module_load_install('messaging');
-  return _messaging_update_duplicate_destinations();
-}
-
-/**
- * Update destination fields
- */
-function notifications_update_6016() {
-  return _notifications_update_fix_destinations('update');
-}
-
-/**
- * Drop unused columns and add fields for scheduled subscriptions
- */
-function notifications_update_6017() {
-  $ret = array();
-  if (db_column_exists('notifications_sent', 'send_method')) {
-    db_drop_field($ret, 'notifications_sent', 'send_method');
-  }
-  db_add_field($ret, 'notifications_sent', 'counter', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  db_add_field($ret, 'notifications_queue', 'send_time', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  return $ret;  
-}
-
-/**
- * Renamed some variables
- */
-/*
-function notifications_update_6017 {
-  $ret = array();
-  
-  return $ret;
-}
-*/
-/**
- * Helper function, clean up queue, events, sent
- */
-function _notifications_update_queue_clean() {
-  $ret = array();
-  $ret[] = update_sql("DELETE FROM {notifications_queue}");
-  $ret[] = update_sql("DELETE FROM {notifications_event}");
-  $ret[] = update_sql("DELETE FROM {notifications_sent}");
-  return $ret;
-}
-
-/**
- * Helper function. Fix subscription destinations
- */
-function _notifications_update_fix_destinations($op) {
-  $ret = array();
-  $methods = $addresses = array();
-  foreach (messaging_method_info() as $method => $info) {
-    $type = isset($info['address_type']) ? $info['address_type'] : $info['group']; // Best guess, will work for most cases
-    $type_method[$type][] = $method;
-    $method_type[$method] = $type;
-  }
-  if ($op == 'create') {
-    // First, fill in destination table with each address type
-    foreach ($type_method as $type => $methods) {
-      $ret[] = update_sql("INSERT INTO {messaging_destination} (uid, type, address) SELECT DISTINCT uid, '$type', destination FROM {notifications} WHERE send_method IN ('" . implode("','", $methods) . "')");
-    }
-  }
-  elseif ($op == 'update') {
-    // This should update notifications table with the new destinations created
-    foreach ($method_type as $method => $type) {
-      // First, registered users, we can do a better matching
-      $ret[] = update_sql("UPDATE {notifications} n INNER JOIN {messaging_destination} d ON n.uid = d.uid AND d.type = '$type' SET n.mdid = d.mdid  WHERE n.uid > 0 AND n.send_method = '$method'");
-      // Then anonymous users, we can just match using destination field
-      $ret[] = update_sql("UPDATE {notifications} n INNER JOIN {messaging_destination} d ON d.uid = 0 AND d.type = '$type' AND n.destination = d.address SET n.mdid = d.mdid WHERE n.uid = 0 AND n.send_method = '$method'");
-    }
-  }
-  // Mark to skip some updates
-  return $ret;   
 }

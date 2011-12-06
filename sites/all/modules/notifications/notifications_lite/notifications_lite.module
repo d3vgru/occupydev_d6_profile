@@ -1,5 +1,5 @@
 <?php
-// $Id: notifications_lite.module,v 1.1.4.6.2.3.4.11 2010/07/22 11:57:49 jareyero Exp $
+// $Id: notifications_lite.module,v 1.1.4.6.2.3 2009/09/22 11:49:07 jareyero Exp $
 /**
  * @file
  *   Simple notifications API
@@ -46,7 +46,7 @@ function notifications_lite_send($uid, $subject, $body = '', $action = 'default'
   }
   elseif (module_exists('messaging')) {
     // We just have the Messaging system, that's something
-    $account = notifications_load_user($uid);
+    $account = messaging_load_user($uid);
     $message = array(
       'type' => 'notifications-lite',
       'subject' => $subject,
@@ -89,17 +89,18 @@ function notifications_lite_add_to_queue($uid, $subject, $body = '', $action = '
     'oid' => $uid,
     'type' => 'lite',
     'action' => $action,
-    'params' => array('for-uid' => $uid),
+    'params' => array('for-uid' => $uid, 'subject' => $subject, 'body' => $body),
     'queue' => FALSE, // Do not send to notifications queue, save some queries
     'counter' => 1, // There will be just one queued row for this event
-    'objects' => array(), // So we don't attempt to load any object if immediate sending
-  );
-  $event['params']['text'] = array('subject' => $subject, 'main' => $body);
-  $event['params']['text']['digest'] = $body ? $subject . ': ' . $body : $subject;
+  );  
   $event['params'] = array_merge($event['params'], $params);
-  // Build event and store row in notifications queue and for immediate sending
-  $event = Notifications_Event::create($event);  
+
+  $event  = notifications_event($event);
+
+  // Store row in notifications queue and for immediate sending
   notifications_lite_queue_event($event);
+  notifications_module_invoke('event queued', $event);
+  notifications_send_immediate($event->eid);
 }
 
 /**
@@ -115,83 +116,81 @@ function notifications_lite_mail($key, &$message, $params) {
  * 
  * It handles event texts to rebuild the message from stored event parameters
  */
-function notifications_lite_notifications($op, $arg0, $arg1 = NULL, $arg2 = NULL) {
+function notifications_lite_notifications($op, &$arg0, $arg1 = NULL, $arg2 = NULL) {
   switch ($op) {
+    case 'event load': // $arg0 is event
+      $event = &$arg0;      
+      if ($event->type == 'lite') {
+        if (!empty($event->params['subject'])) {
+          $event->text['subject'] = $event->params['subject'];
+          $event->text['digest'] = $event->params['subject'];
+        }
+        if (!empty($event->params['body'])) {
+          $event->text['main'] = $event->params['body'];
+          $event->text['digest'] .= ': ' . $event->params['body'];
+        } 
+      }
+      break;
     case 'event types':
       // We just define event type 'lite', action 'default'
-      $types['lite-default'] = array(
+      $types[] = array(
         'type' => 'lite',
         'action' => 'default',
         'name' => t('Message for [user]'),
         'digest' => NULL, // This means grouping by: event type, event action
         'description' => t('Notifications lite message'),
-        'template' => 'notifications-event-lite',
-        'digest_template' => 'notifications-digest-lite',
       );
       return $types;
   }
 }
 
 /**
- * Insert lite notification into queue if we have a valid destination
+ * Insert lite notification into queue.
  * 
  * This just insert a row into notifications_queue table for this event, so it will be processed on cron
  * The message information (subject, body) will be in the event itself, as serialized parameters
  */
 function notifications_lite_queue_event($event) {
   $uid = $event->params['for-uid'];
-  $account = notifications_load_user($uid);
-  $send_method = messaging_method_default($account);
-  if ($destination = messaging_account_build_destination($account, $send_method)) {
-    $event->save();
-    $queue = array(
-      'mdid' => $destination->mdid,
-      'uid' => $uid,
-      'sid' => 0,
-      'module' => 'notifications',
-      'eid' => $event->eid,
-      'send_interval' => notifications_user_setting('send_interval', $account),
-      'send_method' => $send_method,
-      'destination' => $destination->address,
-      'cron' => 1,
-      'created' => time(),
-      'conditions' => 0,
-    );
-    notifications_queue()->queue_item($queue);
-    // Run hooks and store for immediate sending
-    module_invoke_all('notifications_event', 'queued', $event);
-    Notifications_Event::send_immediate($event);
-  }
+  $account = user_load(array('uid' => $uid));
+  $queue = array(
+    'uid' => $uid,
+    'sid' => 0,
+    'module' => 'notifications',
+    'eid' => $event->eid,
+    'send_interval' => notifications_user_setting('send_interval', $account),
+    'send_method' => notifications_user_setting('send_method', $account),
+    'cron' => 1,
+    'created' => time(),
+    'conditions' => 0,
+  );
+  return drupal_write_record('notifications_queue', $queue);
 }
 
 /**
- * Implementation of hook_notifications_template()
+ * Implementation of hook_messaging()
  */
-function notifications_lite_notifications_templates($op = 'info', $type = 'all', $language = NULL) {
+function notifications_lite_messaging($op, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL, $arg4 = NULL) {
   switch ($op) {
-    case 'info':
-      $info = array();
+    case 'message groups':
       // Generic notifications lite event (message)
-      if ($type == 'all' || $type == 'notifications-event-lite') {
-        $info['notifications-event-lite'] = array(
-          'module' => 'notifications_lite',
-          'name' => t('Simple notifications'),
-          'help' => t('The subject and main body will be provided by the event itself'),
-          'description' => t('Simple notifications triggered by other modules using the Notifications Lite API module.'),
-          'fallback' => 'notifications-event',
-        );
-      }
-      if ($type == 'digest' || $type == 'notifications-digest-lite') {
-        $info['notifications-digest-lite'] = array(
-          'module' => 'notifications_lite',
-          'name' => t('Group of simple notifications'),
-          'description' => t('Simple notifications digested with short format.'),
-          'help' => t('Every line of the digest will be a separate message.'),
-          'fallback' => 'notifications-digest',
-        );
-      }
+      $info['notifications-event-lite'] = array(
+        'module' => 'notifications_lite',
+        'name' => t('Simple notifications'),
+        'help' => t('The subject and main body will be provided by the event itself'),
+        'description' => t('Simple notifications triggered by other modules using the Notifications Lite API module.'),
+        'fallback' => 'notifications-event',
+      );
+      $info['notifications-digest-lite'] = array(
+        'module' => 'notifications_lite',
+        'name' => t('Group of simple notifications'),
+        'description' => t('Simple notifications digested with short format.'),
+        'help' => t('Every line of the digest will be a separate message.'),
+        'fallback' => 'notifications-digest',
+      );
       return $info;
-    case 'parts':      
+    case 'message keys':      
+      $type = $arg1;
       switch ($type) {
         case 'notifications-event-lite':
           // The other parts for these messages will be given by the event itself
@@ -206,20 +205,21 @@ function notifications_lite_notifications_templates($op = 'info', $type = 'all',
           return $parts;
       }
       break;
-    case 'defaults':
+    case 'messages':
+      $type = $arg1;
       // Event notifications
       switch ($type) {
         case 'notifications-event-lite':
           return array(
-            'header' => t("Greetings, [user].", array(), $language->language),
+            'header' => t("Greetings, [user]."),
             'footer' => array(
-              t('This is an automatic message from [site-name]', array(), $language->language),
-              t('To manage your subscriptions, browse to [subscriptions-manage]', array(), $language->language),
+              t('This is an automatic message from [site-name]'),
+              t('To manage your subscriptions, browse to [subscriptions-manage]'),
             ),
           );
         case 'notifications-digest-lite':
           return array(
-            'title' => t('Generic messages', array(), $language->language),
+            'title' => t('Generic messages'),
             'closing' => '...',
           );
       }

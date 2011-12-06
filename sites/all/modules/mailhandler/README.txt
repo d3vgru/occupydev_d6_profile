@@ -1,63 +1,55 @@
-CONTENTS OF THIS FILE
----------------------
+Readme
+------
 
- * Overview
- * Features
- * What's new in Mailhandler 2.x
- * More documentation
+The Mailhandler module allows registered users to create or edit nodes and comments via email. Authentication
+is usually based on the From: email address. Users may post taxonomy terms, teasers, and other node parameters using the Commands capability. 
 
-OVERVIEW
---------
+See the 'more help' page within this module for more info - 'admin/help/mailhandler'.
 
-The Mailhandler module allows registered users to create or edit nodes and
-comments via email. Authentication is usually based on the From: email address.
-Users may post taxonomy terms, teasers, and other node parameters using the
-Commands capability.
+Requirements
+------------
 
-FEATURES
---------
+The IMAP dynamic extension must be enabled. On Windows PHP installations, this is as easy as uncommenting 
+the line containing "extension=php_imap.dll" in php.ini. For other OS, you may need to recompile PHP
+if you don't have this extension already.
 
-- Retrieve mail from any IMAP / POP3 mailbox using a variety of settings, and
-  export/import mailbox configurations using CTools / Features.
-- Extensible authentication system- authenticate users by matching "from"
-  address to Drupal user accounts, or by using more advanced token- and
-  password-based authentication methods
-- Extensible commands system- set node properties and CCK fields using a
-  simple key: value system, or use more complex command plugins.
-- Filters allow you to strip signatures and other cruft from messages.
+Installation
+------------
 
-WHAT'S NEW IN MAILHANDLER 2.X
+1. Activate this module as usual
+
+2. Add a mailbox in the Admin page. You'll need a corresponding Folder, POP, or IMAP mailbox
+dedicated to inbound Drupal mail. Additional mailboxes may be useful for specialized situations.
+
+
+Admin Usage
+------------
+
+1. Send a few emails to a Mailhandler email address from an email address which is registered on your site.
+Then visit cron.php to kickoff a pull from your mail server and processing of pending email. Alternatively,
+follow the 'retrieve' link for your newly created mailbox. You should see new nodes on
+your site (go to admin/content/node) or receive error message replies via email.
+
+2. You may add extra security to a Mailhandler mailbox if desired on the Admin page.
+
+3. Install mailalias.module if you want to assist users who might contribute from multiple email addresses.
+
+4. Consider installing the Marksmarty module and using its filter in the input format that you assign in your mailbox form. This filter does a nice job of prettying up plain text email for presentation on the Web.
+
+
+Developer Usage
 -----------------------------
 
-Mailhandler 2.x is a redesign and rewrite of the architecture of Mailhander
-1.x, aiming to be more extensible with how a message can be handled.
-Mailhandler 2.x also leans on other frameworks where possible in order to
-reduce the amount of code that lives in Mailhandler itself when that code 
-consists of patterns better provided by other library or framework modules.
+Mailhandler has several hooks which other modules may implement:
 
-In hard terms, here's what's new in Mailhandler 2.x:
+* hook_mailhandler allows for the message to be altered during node creation (see mailhandler_node_process_message
+  in mailhandler.module)
+* hook_mailhandler_post_save allows operations on a newly saved node created by mailhandler (see mailhandler_node_process_message
+  in mailhandler.module)
+* hook_mailhandler_authenticate_info allows modules to define one or more mailhandler authentication plugins (see 
+  mailhandler.module for implementations)
 
-- Uses CTools Export UI plugins to handle mailbox management, including
-  creating, editing, deleting, cloning, exporting, and importing mailbox
-  configurations.
-- Integration with the Feeds module to handle fetching, parsing, and processing 
-  messages in IMAP and POP mailboxes. Feeds integration also helps with 
-  scheduling processing times.  You can write your own message fetcher, parser,
-  or processor if you'd like to handle messages in a custom way.
-- CTools Plugin system is also used to allow custom command and authentication 
-  plugins to be written. For instance, commanding of basic (textual) CCK fields
-  is supported, but you could write a plugin to command more complex CCK field
-  types.
-- Some business logic remains the same, such as the main mailhandler mailbox 
-  retrieval library in mailhandler.retrieve.inc
-- The message cleaners have been converted into input filters, so they don't
-  permanently modify message content before it is stored in the database.
+Credits
+----------
 
-MORE DOCUMENTATION
-------------------
-
-See the INSTALL.txt for setup instructions.
-
-More documentation is located at http://drupal.org/handbook/modules/mailhandler
-which discusses topics such as how to configure mailboxes for specific email
-providers.
+- this borrows from Julian Bond's excellent Blogmail module for Drupal 3. Gerhard contributed IMAP Folder support.
